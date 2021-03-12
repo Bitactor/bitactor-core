@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>bitactor-core-dependencies</artifactId>
+    <groupId>com.bitactor.framework.core</groupId>
+    <version>${revision}</version>
+    <packaging>pom</packaging>
+    <name>${project.artifactId}</name>
+
+    <properties>
+        <!-- Common libs -->
+        <spring_version>5.2.0.RELEASE</spring_version>
+        <spring_boot_version>2.2.0.RELEASE</spring_boot_version>
+        <javassist_version>3.20.0-GA</javassist_version>
+        <cglib_version>2.2.2</cglib_version>
+        <netty4_version>4.1.42.Final</netty4_version>
+        <kcp_netty>1.4.8</kcp_netty>
+        <fastjson_version>1.2.46</fastjson_version>
+        <protostuff_Serialize_versio>1.0.10</protostuff_Serialize_versio>
+        <proto3_version>3.8.0</proto3_version>
+        <nacos_version>1.2.1</nacos_version>
+        <hutool_version>5.3.10</hutool_version>
+        <!-- Log libs -->
+        <slf4j_version>1.7.25</slf4j_version>
+        <jcl_version>1.2</jcl_version>
+        <log4j_version>1.2.16</log4j_version>
+        <log4j2_version>2.11.1</log4j2_version>
+        <logback_version>1.2.2</logback_version>
+        <commons_lang3_version>3.4</commons_lang3_version>
+        <!--maven plugin-->
+        <maven_flatten_version>1.1.0</maven_flatten_version>
+        <!--框架版本-->
+        <revision>1.0.0-SNAPSHOT</revision>
+        <!--test-->
+        <junit_version>4.12</junit_version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.bitactor.framework.core</groupId>
+                <artifactId>bitactor-core-common</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.bitactor.framework.core</groupId>
+                <artifactId>bitactor-core-net-api</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.bitactor.framework.core</groupId>
+                <artifactId>bitactor-core-net-netty</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.bitactor.framework.core</groupId>
+                <artifactId>bitactor-core-rpc-api</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.bitactor.framework.core</groupId>
+                <artifactId>bitactor-core-rpc-netty</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.bitactor.framework.core</groupId>
+                <artifactId>bitactor-core-registry-api</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.bitactor.framework.core</groupId>
+                <artifactId>bitactor-core-registry-nacos</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!--gson 工具库-->
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>${gson}</version>
+            </dependency>
+            <!--java字节码库-->
+            <dependency>
+                <groupId>org.javassist</groupId>
+                <artifactId>javassist</artifactId>
+                <version>${javassist_version}</version>
+            </dependency>
+            <!--cglib 代理库-->
+            <dependency>
+                <groupId>cglib</groupId>
+                <artifactId>cglib-nodep</artifactId>
+                <version>${cglib_version}</version>
+            </dependency>
+            <!--nio 网络库-->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-all</artifactId>
+                <version>${netty4_version}</version>
+            </dependency>
+            <!--基于netty的 可靠udp库-->
+            <dependency>
+                <groupId>io.jpower.kcp</groupId>
+                <artifactId>kcp-netty</artifactId>
+                <version>${kcp_netty}</version>
+            </dependency>
+            <!--json 库-->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>${fastjson_version}</version>
+            </dependency>
+            <!--nacos 客户端-->
+            <dependency>
+                <groupId>com.alibaba.nacos</groupId>
+                <artifactId>nacos-client</artifactId>
+                <version>${nacos_version}</version>
+            </dependency>
+            <!--protobuff-->
+            <dependency>
+                <groupId>com.dyuproject.protostuff</groupId>
+                <artifactId>protostuff-runtime</artifactId>
+                <version>${protostuff_Serialize_versio}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.dyuproject.protostuff</groupId>
+                <artifactId>protostuff-core</artifactId>
+                <version>${protostuff_Serialize_versio}</version>
+            </dependency>
+            <!--google protobuf-->
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${proto3_version}</version>
+            </dependency>
+            <!--hutool 核心工具-->
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-core</artifactId>
+                <version>${hutool_version}</version>
+            </dependency>
+
+            <!-- Log libs -->
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+                <version>${jcl_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>log4j</groupId>
+                <artifactId>log4j</artifactId>
+                <version>${log4j_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${log4j2_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-slf4j-impl</artifactId>
+                <version>${log4j2_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${log4j2_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons_lang3_version}</version>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit_version}</version>
+                <scope>test</scope>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>${maven_flatten_version}</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
