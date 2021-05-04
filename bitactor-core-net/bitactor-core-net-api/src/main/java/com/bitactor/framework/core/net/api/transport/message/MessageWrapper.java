@@ -20,6 +20,7 @@ package com.bitactor.framework.core.net.api.transport.message;
 
 import com.bitactor.framework.core.net.api.type.ByteSize;
 
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,6 +56,11 @@ public class MessageWrapper {
         return data;
     }
 
+    public byte[] getData(ByteOrder byteOrder) {
+        return data;
+    }
+
+
     public void setData(byte[] data) {
         this.data = data;
     }
@@ -64,7 +70,7 @@ public class MessageWrapper {
     }
 
     public String toString() {
-        return "Class:" + this.getClass().getSimpleName() + " type: " + type + " data: " + toToByteStr(data) + " size: " + (data!=null?data.length:0);
+        return "Class:" + this.getClass().getSimpleName() + " type: " + type + " data: " + toToByteStr(data) + " size: " + (data != null ? data.length : 0);
     }
 
     public static String toToByteStr(byte[] bytes) {

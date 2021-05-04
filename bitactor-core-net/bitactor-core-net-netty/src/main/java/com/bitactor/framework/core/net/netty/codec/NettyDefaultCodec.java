@@ -51,10 +51,10 @@ public class NettyDefaultCodec extends NettyAbstractCodec {
     }
 
     @Override
-    public final Object encode(MessageWrapper message) {
+    public Object encode(MessageWrapper message) {
         ByteBuf in = Unpooled.buffer(message.getAllBytesLength());
         in.writeByte(message.getType());
-        if (message.getData() != null) {
+        if (message.getData(getByteOrder()) != null) {
             in.writeBytes(message.getData());
         }
         return in;

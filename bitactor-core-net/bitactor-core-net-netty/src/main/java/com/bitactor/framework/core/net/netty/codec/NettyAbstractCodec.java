@@ -21,6 +21,8 @@ package com.bitactor.framework.core.net.netty.codec;
 import com.bitactor.framework.core.config.UrlProperties;
 import com.bitactor.framework.core.net.api.Codec;
 
+import java.nio.ByteOrder;
+
 /**
  * netty抽象解码编码器
  *
@@ -31,6 +33,10 @@ public abstract class NettyAbstractCodec implements Codec {
 
     public NettyAbstractCodec(UrlProperties url) {
         this.url = url;
+    }
+
+    public ByteOrder getByteOrder() {
+        return getUrl().isBigEndian() ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN;
     }
 
     public UrlProperties getUrl() {
