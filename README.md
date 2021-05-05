@@ -3,7 +3,7 @@
 [![JDK](https://img.shields.io/badge/JDK-1.8%2B-green.svg)](https://www.oracle.com/technetwork/java/javase/downloads/index.html)
   [![license](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-###介绍
+### 介绍
   Bitactor Core 是一款Java 网络服务框架
 ### bitactor协议
 
