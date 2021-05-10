@@ -68,4 +68,6 @@ public abstract class AbstractNettyClientStarter<T> extends AbstractNettyStarter
             getFuture().channel().close();
         }
     }
+
+    protected abstract Class<? extends T> getChannelClass();
 }
