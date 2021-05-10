@@ -19,26 +19,28 @@ package com.bitactor.framework.core.net.netty.server.starter;
 
 
 import com.bitactor.framework.core.constant.NetConstants;
-import com.bitactor.framework.core.net.netty.handler.*;
-import com.bitactor.framework.core.net.netty.starter.AbstractNettyServerStarter;
-import com.bitactor.framework.core.net.api.ChannelBound;
-import com.bitactor.framework.core.net.api.type.NetworkProtocol;
 import com.bitactor.framework.core.logger.Logger;
 import com.bitactor.framework.core.logger.LoggerFactory;
+import com.bitactor.framework.core.net.api.ChannelBound;
+import com.bitactor.framework.core.net.api.type.NetworkProtocol;
+import com.bitactor.framework.core.net.netty.handler.*;
 import com.bitactor.framework.core.net.netty.handler.ws.ChannelConnectSWSHandler;
 import com.bitactor.framework.core.net.netty.handler.ws.DecoderWSHandler;
 import com.bitactor.framework.core.net.netty.handler.ws.EncoderWSHandler;
+import com.bitactor.framework.core.net.netty.starter.AbstractNettyServerStarter;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.ssl.SslContext;
@@ -87,57 +89,15 @@ public class WSServerStarter extends AbstractNettyServerStarter<ServerChannel> {
     }
 
     @Override
-    protected Class<? extends ServerChannel> getChannelClass() {
-        if (Epoll.isAvailable()) {
-            return EpollServerSocketChannel.class;
-        } else {
-            return NioServerSocketChannel.class;
-        }
-    }
-
-    @Override
     public void start() {
         initBossGroup();
         initWorkGroup();
         int port = getUrl().getPort();
         try {
-            // SSL.
-            final SslContext sslCtx;
-            if (getUrl().isOpenWsSsl()) {
-                SelfSignedCertificate ssc = new SelfSignedCertificate();
-                sslCtx = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
-            } else {
-                sslCtx = null;
-            }
+
             ServerBootstrap bootstrap = new ServerBootstrap(); //作为一个引导程序
             bootstrap.group(getBossGroup(), getWorkerGroup());//添加连接处理器组
-            bootstrap.channel(getChannelClass());//
-            bootstrap.childHandler(new ChannelInitializer<NioSocketChannel>() {
-                @Override
-                protected void initChannel(NioSocketChannel nioSocketChannel) throws Exception {
-                    if (Objects.nonNull(sslCtx)) {
-                        nioSocketChannel.pipeline().addLast("SSL", sslCtx.newHandler(nioSocketChannel.alloc()));
-                    }
-                    nioSocketChannel.pipeline().addLast("EncoderHandler", new EncoderWSHandler(getChannelBound()));
-                    // websocket 基于http协议，所以要有http编解码器
-                    nioSocketChannel.pipeline().addLast("HttpServerCodec", new HttpServerCodec());
-                    // 对写大数据流的支持
-                    nioSocketChannel.pipeline().addLast("ChunkedWriteHandler", new ChunkedWriteHandler());
-                    // 对httpMessage进行聚合，聚合成FullHttpRequest或FullHttpResponse
-                    int maxContentLength = getUrl().getParameter(NetConstants.BUFFER_KEY, NetConstants.DEFAULT_BUFFER_SIZE);
-                    nioSocketChannel.pipeline().addLast("HttpObjectAggregator", new HttpObjectAggregator(maxContentLength));
-                    // ====================== 以上是用于支持http协议    ======================
-
-                    nioSocketChannel.pipeline().addLast("ChannelConnectHandler", new ChannelConnectSWSHandler(getChannelBound()));
-                    nioSocketChannel.pipeline().addLast("DecoderHandler", new DecoderWSHandler(getChannelBound()));
-                    nioSocketChannel.pipeline().addLast("IPLimitHandler", new IPLimitHandler(getChannelBound()));
-                    nioSocketChannel.pipeline().addLast("MsgAckHandler", new MsgAckHandler(getChannelBound()));
-                    nioSocketChannel.pipeline().addLast("MsgCloseHandler", new MsgCloseHandler(getChannelBound()));
-                    nioSocketChannel.pipeline().addLast("MsgDataWSHandler", new MsgDataHandler(getChannelBound()));
-                    nioSocketChannel.pipeline().addLast("ExceptionHandler", new ExceptionHandler(getChannelBound()));
-                }
-
-            });
+            addChannelHandler(bootstrap);
             bootstrap.childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
             bootstrap.childOption(ChannelOption.SO_REUSEADDR, Boolean.TRUE);
             bootstrap.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
@@ -156,5 +116,59 @@ public class WSServerStarter extends AbstractNettyServerStarter<ServerChannel> {
             //关闭通知
             getChannelBound().shutdownNotify();
         }
+    }
+
+    @Override
+    protected void addChannelHandler(ServerBootstrap bootstrap) throws Exception {
+        // SSL.
+        final SslContext sslCtx;
+        if (getUrl().isOpenWsSsl()) {
+            SelfSignedCertificate ssc = new SelfSignedCertificate();
+            sslCtx = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
+        } else {
+            sslCtx = null;
+        }
+        if (Epoll.isAvailable()) {
+            bootstrap.channel(EpollServerSocketChannel.class);
+            bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
+                @Override
+                protected void initChannel(SocketChannel nioSocketChannel) throws Exception {
+                    addChannelPipeline(sslCtx, nioSocketChannel.pipeline(), nioSocketChannel.alloc());
+                }
+
+            });
+        } else {
+            bootstrap.channel(NioServerSocketChannel.class);
+            bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
+                @Override
+                protected void initChannel(SocketChannel nioSocketChannel) throws Exception {
+                    addChannelPipeline(sslCtx, nioSocketChannel.pipeline(), nioSocketChannel.alloc());
+                }
+
+            });
+        }
+    }
+
+    private void addChannelPipeline(SslContext sslCtx, ChannelPipeline pipeline, ByteBufAllocator alloc) {
+        if (Objects.nonNull(sslCtx)) {
+            pipeline.addLast("SSL", sslCtx.newHandler(alloc));
+        }
+        pipeline.addLast("EncoderHandler", new EncoderWSHandler(getChannelBound()));
+        // websocket 基于http协议，所以要有http编解码器
+        pipeline.addLast("HttpServerCodec", new HttpServerCodec());
+        // 对写大数据流的支持
+        pipeline.addLast("ChunkedWriteHandler", new ChunkedWriteHandler());
+        // 对httpMessage进行聚合，聚合成FullHttpRequest或FullHttpResponse
+        int maxContentLength = getUrl().getParameter(NetConstants.BUFFER_KEY, NetConstants.DEFAULT_BUFFER_SIZE);
+        pipeline.addLast("HttpObjectAggregator", new HttpObjectAggregator(maxContentLength));
+        // ====================== 以上是用于支持http协议    ======================
+
+        pipeline.addLast("ChannelConnectHandler", new ChannelConnectSWSHandler(getChannelBound()));
+        pipeline.addLast("DecoderHandler", new DecoderWSHandler(getChannelBound()));
+        pipeline.addLast("IPLimitHandler", new IPLimitHandler(getChannelBound()));
+        pipeline.addLast("MsgAckHandler", new MsgAckHandler(getChannelBound()));
+        pipeline.addLast("MsgCloseHandler", new MsgCloseHandler(getChannelBound()));
+        pipeline.addLast("MsgDataWSHandler", new MsgDataHandler(getChannelBound()));
+        pipeline.addLast("ExceptionHandler", new ExceptionHandler(getChannelBound()));
     }
 }

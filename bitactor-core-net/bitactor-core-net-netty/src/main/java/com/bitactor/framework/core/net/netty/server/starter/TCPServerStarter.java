@@ -19,23 +19,24 @@ package com.bitactor.framework.core.net.netty.server.starter;
 
 
 import com.bitactor.framework.core.constant.NetConstants;
-import com.bitactor.framework.core.net.netty.handler.*;
-import com.bitactor.framework.core.net.netty.starter.AbstractNettyServerStarter;
-import com.bitactor.framework.core.net.api.ChannelBound;
-import com.bitactor.framework.core.net.api.type.NetworkProtocol;
 import com.bitactor.framework.core.logger.Logger;
 import com.bitactor.framework.core.logger.LoggerFactory;
+import com.bitactor.framework.core.net.api.ChannelBound;
+import com.bitactor.framework.core.net.api.type.NetworkProtocol;
+import com.bitactor.framework.core.net.netty.handler.*;
+import com.bitactor.framework.core.net.netty.starter.AbstractNettyServerStarter;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
 
 /**
@@ -75,14 +76,6 @@ public class TCPServerStarter extends AbstractNettyServerStarter<ServerChannel> 
         }
     }
 
-    @Override
-    protected Class<? extends ServerChannel> getChannelClass() {
-        if (Epoll.isAvailable()) {
-            return EpollServerSocketChannel.class;
-        } else {
-            return NioServerSocketChannel.class;
-        }
-    }
 
     @Override
     public void start() {
@@ -92,21 +85,7 @@ public class TCPServerStarter extends AbstractNettyServerStarter<ServerChannel> 
         try {
             ServerBootstrap bootstrap = new ServerBootstrap(); //作为一个引导程序
             bootstrap.group(getBossGroup(), getWorkerGroup());//添加连接处理器组
-            bootstrap.channel(getChannelClass());//
-            bootstrap.childHandler(new ChannelInitializer<NioSocketChannel>() {
-                @Override
-                protected void initChannel(NioSocketChannel nioSocketChannel) throws Exception {
-                    nioSocketChannel.pipeline().addLast("DecoderHandler", new DecoderHandler(getChannelBound()));
-                    nioSocketChannel.pipeline().addLast("EncoderHandler", new EncoderHandler(getChannelBound()));
-                    nioSocketChannel.pipeline().addLast("IPLimitHandler", new IPLimitHandler(getChannelBound()));
-                    nioSocketChannel.pipeline().addLast("ChannelConnectHandler", new ChannelConnectHandler(getChannelBound()));
-                    nioSocketChannel.pipeline().addLast("MsgAckHandler", new MsgAckHandler(getChannelBound()));
-                    nioSocketChannel.pipeline().addLast("MsgCloseHandler", new MsgCloseHandler(getChannelBound()));
-                    nioSocketChannel.pipeline().addLast("MsgDataHandler", new MsgDataHandler(getChannelBound()));
-                    nioSocketChannel.pipeline().addLast("ExceptionHandler", new ExceptionHandler(getChannelBound()));
-                }
-
-            });
+            addChannelHandler(bootstrap);
             bootstrap.childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
             bootstrap.childOption(ChannelOption.SO_REUSEADDR, Boolean.TRUE);
             bootstrap.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
@@ -116,7 +95,7 @@ public class TCPServerStarter extends AbstractNettyServerStarter<ServerChannel> 
             getChannelBound().startNotify();
             //直到服务器关闭才进行下一步
             getFuture().channel().closeFuture().sync();
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
 
@@ -125,5 +104,39 @@ public class TCPServerStarter extends AbstractNettyServerStarter<ServerChannel> 
             //关闭通知
             getChannelBound().shutdownNotify();
         }
+    }
+
+    @Override
+    protected void addChannelHandler(ServerBootstrap bootstrap) throws Exception {
+        if (Epoll.isAvailable()) {
+            bootstrap.channel(EpollServerSocketChannel.class);
+            bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
+                @Override
+                protected void initChannel(SocketChannel nioSocketChannel) throws Exception {
+                    addChannelPipeline(nioSocketChannel.pipeline());
+                }
+
+            });
+        } else {
+            bootstrap.channel(NioServerSocketChannel.class);
+            bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
+                @Override
+                protected void initChannel(SocketChannel nioSocketChannel) throws Exception {
+                    addChannelPipeline(nioSocketChannel.pipeline());
+                }
+
+            });
+        }
+    }
+
+    private void addChannelPipeline(ChannelPipeline pipeline) {
+        pipeline.addLast("DecoderHandler", new DecoderHandler(getChannelBound()));
+        pipeline.addLast("EncoderHandler", new EncoderHandler(getChannelBound()));
+        pipeline.addLast("IPLimitHandler", new IPLimitHandler(getChannelBound()));
+        pipeline.addLast("ChannelConnectHandler", new ChannelConnectHandler(getChannelBound()));
+        pipeline.addLast("MsgAckHandler", new MsgAckHandler(getChannelBound()));
+        pipeline.addLast("MsgCloseHandler", new MsgCloseHandler(getChannelBound()));
+        pipeline.addLast("MsgDataHandler", new MsgDataHandler(getChannelBound()));
+        pipeline.addLast("ExceptionHandler", new ExceptionHandler(getChannelBound()));
     }
 }
