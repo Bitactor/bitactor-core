@@ -161,6 +161,6 @@ public class NettyModeServer extends NettyBaseServer {
         }
         this.channelManager.destroyChannel(channelId);
         channel.onDestroy();
-        logger.debug("Server data channel has closed channel id:" + channelId + " remote address : " + channel.getRemoteAddress());
+        logger.info("Server data channel has closed channel id:" + channelId + " remote address : " + channel.getRemoteAddress());
     }
 }

@@ -20,11 +20,12 @@ package com.bitactor.framework.core.net.netty.starter;
 
 import com.bitactor.framework.core.constant.NetConstants;
 import com.bitactor.framework.core.constant.RPCConstants;
-import com.bitactor.framework.core.net.api.ChannelBound;
-import com.bitactor.framework.core.net.api.type.NetworkProtocol;
 import com.bitactor.framework.core.logger.Logger;
 import com.bitactor.framework.core.logger.LoggerFactory;
+import com.bitactor.framework.core.net.api.ChannelBound;
+import com.bitactor.framework.core.net.api.type.NetworkProtocol;
 import com.bitactor.framework.core.utils.assist.UrlPropertiesUtils;
+import io.netty.bootstrap.ServerBootstrap;
 
 /**
  * 服务端启动器抽象类
@@ -85,4 +86,6 @@ public abstract class AbstractNettyServerStarter<T> extends AbstractNettyStarter
             getFuture().channel().close();
         }
     }
+
+    protected abstract void addChannelHandler(ServerBootstrap bootstrap) throws Exception;
 }

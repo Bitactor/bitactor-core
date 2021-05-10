@@ -28,6 +28,7 @@ import io.jpower.kcp.netty.ChannelOptionHelper;
 import io.jpower.kcp.netty.UkcpChannel;
 import io.jpower.kcp.netty.UkcpChannelOption;
 import io.jpower.kcp.netty.UkcpServerChannel;
+import io.netty.bootstrap.ServerBootstrap;
 import io.netty.bootstrap.UkcpServerBootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -55,11 +56,6 @@ public class KCPServerStarter extends AbstractNettyServerStarter<UkcpServerChann
                 new DefaultThreadFactory("NettyServerWorker", true)));
     }
 
-    @Override
-    protected Class<? extends UkcpServerChannel> getChannelClass() {
-        return UkcpServerChannel.class;
-    }
-
 
     @Override
     public boolean isActive() {
@@ -74,7 +70,7 @@ public class KCPServerStarter extends AbstractNettyServerStarter<UkcpServerChann
             int port = getUrl().getPort();
             UkcpServerBootstrap bootstrap = new UkcpServerBootstrap();
             bootstrap.group(getWorkerGroup())
-                    .channel(getChannelClass())
+                    .channel(UkcpServerChannel.class)
                     .childHandler(new ChannelInitializer<UkcpChannel>() {
                         @Override
                         public void initChannel(UkcpChannel ch) throws Exception {
@@ -114,4 +110,8 @@ public class KCPServerStarter extends AbstractNettyServerStarter<UkcpServerChann
         }
     }
 
+    @Override
+    protected void addChannelHandler(ServerBootstrap bootstrap) throws Exception {
+        // do nothing
+    }
 }
