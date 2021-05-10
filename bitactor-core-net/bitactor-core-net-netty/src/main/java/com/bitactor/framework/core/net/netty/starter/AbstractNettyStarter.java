@@ -19,10 +19,10 @@ package com.bitactor.framework.core.net.netty.starter;
 
 
 import com.bitactor.framework.core.config.UrlProperties;
-import com.bitactor.framework.core.net.api.ChannelBound;
-import com.bitactor.framework.core.net.api.Starter;
 import com.bitactor.framework.core.logger.Logger;
 import com.bitactor.framework.core.logger.LoggerFactory;
+import com.bitactor.framework.core.net.api.ChannelBound;
+import com.bitactor.framework.core.net.api.Starter;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 
@@ -76,8 +76,6 @@ public abstract class AbstractNettyStarter<T> implements Starter {
     protected abstract void initBossGroup();
 
     protected abstract void initWorkGroup();
-
-    protected abstract Class<? extends T> getChannelClass();
 
     @Override
     public ChannelBound getChannelBound() {
