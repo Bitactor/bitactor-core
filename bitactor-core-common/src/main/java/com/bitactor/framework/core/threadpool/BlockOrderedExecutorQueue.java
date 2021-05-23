@@ -20,6 +20,7 @@ package com.bitactor.framework.core.threadpool;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -27,22 +28,26 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author WXH
  */
-public class BlockOrderedExecutorQueue implements OrderedExecutor {
+public class BlockOrderedExecutorQueue<T extends Runnable> implements OrderedExecutor<T> {
     private final ExecutorService executorService;
-    private Queue<Runnable> orderedQueue = new LinkedList<>();
+    private Queue<T> orderedQueue = new LinkedList<>();
     private ReentrantLock lock = new ReentrantLock(true);
+    private AtomicBoolean cancelState = new AtomicBoolean(false);
 
     public BlockOrderedExecutorQueue(ExecutorService executorService) {
         this.executorService = executorService;
     }
 
     @Override
-    public void add(Runnable runnable) {
+    public void add(T runnable) {
+        if (cancelState.get()) {
+            return;
+        }
         try {
             this.lock.lock();
             if (this.orderedQueue.isEmpty()) {
                 this.orderedQueue.add(runnable);
-                executorService.execute(this);
+                executorService.execute(this::run);
             } else {
                 this.orderedQueue.add(runnable);
             }
@@ -53,6 +58,10 @@ public class BlockOrderedExecutorQueue implements OrderedExecutor {
     }
 
     @Override
+    public void cancel() {
+        cancelState.getAndSet(true);
+    }
+
     public void run() {
         if (!this.orderedQueue.isEmpty()) {
             Runnable runnable = this.orderedQueue.peek();
@@ -61,7 +70,9 @@ public class BlockOrderedExecutorQueue implements OrderedExecutor {
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
-                this.complete();
+                if (!cancelState.get()) {
+                    this.complete();
+                }
             }
         }
 
@@ -72,7 +83,7 @@ public class BlockOrderedExecutorQueue implements OrderedExecutor {
             this.lock.lock();
             this.orderedQueue.poll();
             if (!this.orderedQueue.isEmpty()) {
-                executorService.execute(this);
+                executorService.execute(this::run);
             }
         } finally {
             this.lock.unlock();
