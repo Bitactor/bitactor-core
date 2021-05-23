@@ -28,20 +28,29 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author WXH
  */
-public class AtomicOrderedExecutorQueue implements OrderedExecutor {
+public class AtomicOrderedExecutorQueue<T extends Runnable> implements OrderedExecutor<T> {
     private final ExecutorService executorService;
-    private Queue<Runnable> orderedQueue = new ConcurrentLinkedQueue<>();
+    private Queue<T> orderedQueue = new ConcurrentLinkedQueue<>();
     private AtomicBoolean runState = new AtomicBoolean(false);
+    private AtomicBoolean cancelState = new AtomicBoolean(false);
 
     public AtomicOrderedExecutorQueue(ExecutorService executorService) {
         this.executorService = executorService;
     }
 
-    public void add(Runnable runnable) {
+    public void add(T runnable) {
+        if (cancelState.get()) {
+            return;
+        }
         this.orderedQueue.add(runnable);
         if (runState.compareAndSet(false, true)) {
-            executorService.execute(this);
+            executorService.execute(this::run);
         }
+    }
+
+    @Override
+    public void cancel() {
+        cancelState.getAndSet(true);
     }
 
     public void run() {
@@ -55,12 +64,14 @@ public class AtomicOrderedExecutorQueue implements OrderedExecutor {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            this.complete();
+            if (!cancelState.get()) {
+                this.complete();
+            }
         }
     }
 
     private void complete() {
-        executorService.execute(this);
+        executorService.execute(this::run);
     }
 }
 

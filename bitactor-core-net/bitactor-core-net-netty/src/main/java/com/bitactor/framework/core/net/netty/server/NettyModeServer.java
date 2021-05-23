@@ -88,7 +88,7 @@ public class NettyModeServer extends NettyBaseServer {
     private void complete(Channel channel) {
         // 乳沟开启了消息接收线程池
         if (isOpenMsgReceiveThreadPool() && isOpenMsgReceiveOrderedQueue()) {
-            channel.setAttrVal(NetConstants.MESSAGE_RECEIVE_QUEUE_KEY, new AtomicOrderedExecutorQueue(this.getMessageThreadPool()));
+            channel.setAttrVal(NetConstants.MESSAGE_RECEIVE_QUEUE_KEY, new AtomicOrderedExecutorQueue<Runnable>(this.getMessageThreadPool()));
         }
         getCommonPool().execute(() -> {
             channel.onActivity();
@@ -135,7 +135,7 @@ public class NettyModeServer extends NettyBaseServer {
             };
             // 有序消息队列，channel 有序
             if (isOpenMsgReceiveOrderedQueue()) {
-                AtomicOrderedExecutorQueue orderedExecutorQueue = channel.getAttrVal(NetConstants.MESSAGE_RECEIVE_QUEUE_KEY, null);
+                AtomicOrderedExecutorQueue<Runnable> orderedExecutorQueue = channel.getAttrVal(NetConstants.MESSAGE_RECEIVE_QUEUE_KEY, null);
                 orderedExecutorQueue.add(runnable);
             } else {
                 // 无序，消息队列，快速执行
