@@ -25,7 +25,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 
 /**
@@ -53,12 +52,8 @@ public class EncoderWSHandler extends ChannelOutboundHandlerAdapter {
         if (msg instanceof MessageWrapper) {
             MessageWrapper wrapper = (MessageWrapper) msg;
             WebSocketFrame frame = null;
-            if (checkIsBinary(wrapper)) {
-                ByteBuf data = (ByteBuf) this.channelBound.getCodec().encode(wrapper);
-                frame = new BinaryWebSocketFrame(data);
-            } else {
-                frame = new CloseWebSocketFrame();
-            }
+            ByteBuf data = (ByteBuf) this.channelBound.getCodec().encode(wrapper);
+            frame = new BinaryWebSocketFrame(data);
             ctx.channel().writeAndFlush(frame);
         } else {
             ctx.write(msg, promise);

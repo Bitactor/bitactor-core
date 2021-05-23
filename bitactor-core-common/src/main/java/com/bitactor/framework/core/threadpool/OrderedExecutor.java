@@ -22,6 +22,8 @@ package com.bitactor.framework.core.threadpool;
  *
  * @author WXH
  */
-public interface OrderedExecutor extends Runnable {
-    void add(Runnable runnable);
+public interface OrderedExecutor<T extends Runnable> {
+    void add(T runnable);
+
+    void cancel();
 }
