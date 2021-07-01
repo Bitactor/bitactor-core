@@ -164,11 +164,12 @@ public class ProviderExport extends AbstractExport {
                         asyncResult.setAsync((o, cause) -> {
                             // 清除 异步消费者属性，防止序列化失败
                             asyncResult.setAsync(null);
+                            asyncResult.setArgs(o);
                             if (Objects.nonNull(cause)) {
-                                future.completeExceptionally((Throwable) cause);
-                            } else {
-                                future.complete(o);
+                                asyncResult.setCause((Throwable) cause);
+                                ((Throwable) cause).printStackTrace();
                             }
+                            future.complete(o);
                         });
                     }
                 }

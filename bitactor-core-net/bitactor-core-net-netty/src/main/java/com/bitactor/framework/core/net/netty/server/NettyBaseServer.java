@@ -21,27 +21,28 @@ import com.alibaba.fastjson.JSON;
 import com.bitactor.framework.core.config.UrlProperties;
 import com.bitactor.framework.core.constant.NetConstants;
 import com.bitactor.framework.core.constant.RPCConstants;
-import com.bitactor.framework.core.net.netty.server.starter.WSServerStarter;
-import com.bitactor.framework.core.utils.collection.CollectionUtils;
+import com.bitactor.framework.core.eventloop.BitactorEventLoopGroup;
+import com.bitactor.framework.core.exception.NotSupportException;
+import com.bitactor.framework.core.logger.Logger;
+import com.bitactor.framework.core.logger.LoggerFactory;
 import com.bitactor.framework.core.net.api.*;
 import com.bitactor.framework.core.net.api.suport.SystemHandShakeDataBound;
 import com.bitactor.framework.core.net.api.transport.AbstractServer;
 import com.bitactor.framework.core.net.api.transport.HandShakeData;
-import com.bitactor.framework.core.exception.NotSupportException;
-import com.bitactor.framework.core.logger.Logger;
-import com.bitactor.framework.core.logger.LoggerFactory;
 import com.bitactor.framework.core.net.netty.server.starter.KCPServerStarter;
 import com.bitactor.framework.core.net.netty.server.starter.TCPServerStarter;
-import com.bitactor.framework.core.threadpool.ThreadPoolFactory;
+import com.bitactor.framework.core.net.netty.server.starter.WSServerStarter;
+import com.bitactor.framework.core.threadpool.NamedThreadFactory;
+import com.bitactor.framework.core.utils.collection.CollectionUtils;
 
 import java.lang.reflect.Constructor;
 import java.net.InetSocketAddress;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 
 /**
  * 基于netty4的io服务
@@ -68,9 +69,9 @@ public abstract class NettyBaseServer extends AbstractServer {
 
     private Codec codec;
 
-    private ExecutorService messageThreadPool;
-
     private ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
+
+    private BitactorEventLoopGroup msgEventLoopGroup = null;
 
     public void setBound(boolean bound) {
         this.bound = bound;
@@ -84,16 +85,16 @@ public abstract class NettyBaseServer extends AbstractServer {
         return HandShake;
     }
 
-    protected ExecutorService getMessageThreadPool() {
-        return messageThreadPool;
-    }
-
     protected ConcurrentHashMap<String, Channel> getAckChannels() {
         return ackChannels;
     }
 
     public InetSocketAddress getLocalAddress() {
         return getUrl().toInetSocketAddress();
+    }
+
+    public BitactorEventLoopGroup getMsgEventLoopGroup() {
+        return msgEventLoopGroup;
     }
 
     @Override
@@ -173,27 +174,17 @@ public abstract class NettyBaseServer extends AbstractServer {
      * 初始化消息接收线程池
      */
     private void initializerThreadPool() {
-        if (isOpenMsgReceiveThreadPool()) {
-            this.messageThreadPool = ThreadPoolFactory.getJdkTheadPool(this.getUrl(), this.getUrl().getParameter(NetConstants.MESSAGE_RECEIVE_THREAD_NAME, NetConstants.MESSAGE_RECEIVE_THREAD_NAME));
+        if (isOpenMsgReceiveEventLoop()) {
+            String threadNamePrefix = this.getUrl().getParameter(NetConstants.MESSAGE_RECEIVE_THREAD_NAME, NetConstants.MESSAGE_RECEIVE_THREAD_NAME);
             int threads = getUrl().getParameter(NetConstants.THREADS_KEY, NetConstants.DEFAULT_IO_THREADS);
-            int queues = getUrl().getParameter(NetConstants.QUEUES_KEY, NetConstants.DEFAULT_QUEUES);
-            logger.info(String.format("[Server open message receive thread pool prefix  ] : %s  ", NetConstants.MESSAGE_RECEIVE_THREAD_NAME));
-            logger.info(String.format("[Server open message receive thread pool size    ] : %s  ", threads));
-            logger.info(String.format("[Server open message receive thread pool queues  ] : %d  ", queues));
-            if (isOpenMsgReceiveOrderedQueue()) {
-                logger.info(String.format("[Server open message receive ordered queues      ] : open"));
-            }
-        } else {
-            logger.info("[Server not open msg receive thread pool queues  ]");
+            this.msgEventLoopGroup = new BitactorEventLoopGroup(threads, new NamedThreadFactory(threadNamePrefix));
+            logger.info(String.format("[Server open message receive event loop prefix   ] : %s  ", threadNamePrefix));
+            logger.info(String.format("[Server open message receive event loop size     ] : %s  ", threads));
         }
     }
 
-    protected boolean isOpenMsgReceiveThreadPool() {
-        return this.getUrl().getParameter(NetConstants.MSG_RECEIVE_THREAD_POOL_OPEN_KEY, NetConstants.DEFAULT_MSG_RECEIVE_THREAD_OPEN);
-    }
-
-    protected boolean isOpenMsgReceiveOrderedQueue() {
-        return this.getUrl().getParameter(NetConstants.MSG_RECEIVE_ORDERED_QUEUE_OPEN_KEY, NetConstants.DEFAULT_MSG_RECEIVE_ORDERED_QUEUE_OPEN);
+    protected boolean isOpenMsgReceiveEventLoop() {
+        return this.getUrl().getParameter(NetConstants.MSG_RECEIVE_EVENT_LOOP_KEY, NetConstants.DEFAULT_MSG_RECEIVE_EVENT_LOOP_OPEN);
     }
 
     /**
@@ -219,8 +210,8 @@ public abstract class NettyBaseServer extends AbstractServer {
     @Override
     public void shutdownNotify() {
         super.shutdownNotify();
-        if (this.messageThreadPool != null) {
-            this.messageThreadPool.shutdownNow();
+        if (Objects.nonNull(this.msgEventLoopGroup)) {
+            this.msgEventLoopGroup.shutdownNow();
             logger.info("close messageThreadPool...");
         }
         logger.info("close singleService...");
@@ -282,6 +273,7 @@ public abstract class NettyBaseServer extends AbstractServer {
     public String getChannelIP(io.netty.channel.Channel channel) {
         return ((InetSocketAddress) channel.remoteAddress()).getAddress().getHostAddress();
     }
+
     public boolean isOpenHeartbeat() {
         return getUrl().getParameter(NetConstants.HEARTBEAT_OPEN_KEY, NetConstants.DEFAULT_HEARTBEAT_OPEN);
     }

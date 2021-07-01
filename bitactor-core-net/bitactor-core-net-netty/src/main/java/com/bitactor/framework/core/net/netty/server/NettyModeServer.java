@@ -20,16 +20,16 @@ package com.bitactor.framework.core.net.netty.server;
 
 import com.bitactor.framework.core.config.UrlProperties;
 import com.bitactor.framework.core.constant.NetConstants;
-import com.bitactor.framework.core.net.netty.channel.AckNettyChannel;
-import com.bitactor.framework.core.net.netty.channel.NettyChannelContext;
+import com.bitactor.framework.core.eventloop.inf.IEventLoop;
+import com.bitactor.framework.core.logger.Logger;
+import com.bitactor.framework.core.logger.LoggerFactory;
 import com.bitactor.framework.core.net.api.Channel;
 import com.bitactor.framework.core.net.api.ChannelContext;
 import com.bitactor.framework.core.net.api.ChannelManager;
 import com.bitactor.framework.core.net.api.transport.message.*;
-import com.bitactor.framework.core.logger.Logger;
-import com.bitactor.framework.core.logger.LoggerFactory;
+import com.bitactor.framework.core.net.netty.channel.AckNettyChannel;
+import com.bitactor.framework.core.net.netty.channel.NettyChannelContext;
 import com.bitactor.framework.core.net.netty.handler.HeartBeatSHandler;
-import com.bitactor.framework.core.threadpool.AtomicOrderedExecutorQueue;
 import io.netty.channel.ChannelHandlerContext;
 
 /**
@@ -86,9 +86,9 @@ public class NettyModeServer extends NettyBaseServer {
     }
 
     private void complete(Channel channel) {
-        // 乳沟开启了消息接收线程池
-        if (isOpenMsgReceiveThreadPool() && isOpenMsgReceiveOrderedQueue()) {
-            channel.setAttrVal(NetConstants.MESSAGE_RECEIVE_QUEUE_KEY, new AtomicOrderedExecutorQueue<Runnable>(this.getMessageThreadPool()));
+        // 如果开启了消息接收线程池
+        if (isOpenMsgReceiveEventLoop()) {
+            channel.setAttrVal(NetConstants.MESSAGE_RECEIVE_EVENT_LOOP_KEY, getMsgEventLoopGroup().next());
         }
         getCommonPool().execute(() -> {
             channel.onActivity();
@@ -129,19 +129,12 @@ public class NettyModeServer extends NettyBaseServer {
             logger.error("Server receive msg but can not find channel, channel id:" + channelId);
             return;
         }
-        if (isOpenMsgReceiveThreadPool()) {
-            Runnable runnable = () -> {
-                channel.onReceived(message);
-            };
-            // 有序消息队列，channel 有序
-            if (isOpenMsgReceiveOrderedQueue()) {
-                AtomicOrderedExecutorQueue<Runnable> orderedExecutorQueue = channel.getAttrVal(NetConstants.MESSAGE_RECEIVE_QUEUE_KEY, null);
-                orderedExecutorQueue.add(runnable);
-            } else {
-                // 无序，消息队列，快速执行
-                getMessageThreadPool().execute(runnable);
-            }
+        if (isOpenMsgReceiveEventLoop()) {
 
+            IEventLoop msgEventLoop = channel.getAttrVal(NetConstants.MESSAGE_RECEIVE_EVENT_LOOP_KEY, null);
+            msgEventLoop.execute(() -> {
+                channel.onReceived(message);
+            });
         } else {
             // netty worker 线程池 执行
             channel.onReceived(message);

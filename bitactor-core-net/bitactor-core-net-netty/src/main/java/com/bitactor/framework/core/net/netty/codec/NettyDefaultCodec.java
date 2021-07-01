@@ -54,8 +54,9 @@ public class NettyDefaultCodec extends NettyAbstractCodec {
     public Object encode(MessageWrapper message) {
         ByteBuf in = Unpooled.buffer(message.getAllBytesLength());
         in.writeByte(message.getType());
-        if (message.getData(getByteOrder()) != null) {
-            in.writeBytes(message.getData());
+        byte[] data = message.getData(getByteOrder());
+        if (data != null) {
+            in.writeBytes(data);
         }
         return in;
     }
