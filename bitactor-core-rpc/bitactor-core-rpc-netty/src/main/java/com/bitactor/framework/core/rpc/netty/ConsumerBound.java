@@ -73,7 +73,6 @@ public abstract class ConsumerBound extends AbstractBound {
         }
         // 判断当前url的实例是否是本地服务，若是远程服务则添加新的连接 并请更新
         if (!VMCache.getInstance().isLocalServerTypeId(url.getGroupAndId()) && !isActive(url.getGroupAndId())) {
-            AbstractClient nettyClient = new NettyModeClient(new ConsumerListener(this), url);
             ModeClients modeClients = new ModeClients(url, () -> {
                 return new NettyModeClient(new ConsumerListener(this), url);
             });

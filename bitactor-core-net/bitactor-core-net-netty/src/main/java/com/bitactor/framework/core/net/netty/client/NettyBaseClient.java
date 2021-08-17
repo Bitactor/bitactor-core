@@ -125,7 +125,7 @@ public abstract class NettyBaseClient extends AbstractClient {
         Class codecCls = Class.forName(getUrl().getParameter(NetConstants.CODEC_KEY, NetConstants.DEFAULT_REMOTING_CODEC));
         Constructor constructor = codecCls.getConstructor(UrlProperties.class);
         this.codec = (Codec) constructor.newInstance(getUrl());
-        logger.info(String.format("[Server message codeC use                        ] %s  ", this.codec.getClass().getName()));
+        logger.info(String.format("[Client message codeC use                        ] %s  ", this.codec.getClass().getName()));
     }
 
     @Override
