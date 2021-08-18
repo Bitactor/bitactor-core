@@ -175,8 +175,8 @@ public abstract class NettyBaseServer extends AbstractServer {
      */
     private void initializerThreadPool() {
         if (isOpenMsgReceiveEventLoop()) {
-            String threadNamePrefix = this.getUrl().getParameter(NetConstants.MESSAGE_RECEIVE_THREAD_NAME, NetConstants.MESSAGE_RECEIVE_THREAD_NAME);
-            int threads = getUrl().getParameter(NetConstants.THREADS_KEY, NetConstants.DEFAULT_IO_THREADS);
+            String threadNamePrefix = this.getUrl().getParameter(NetConstants.MSG_RECEIVE_EVENT_LOOP_PREFIX_KEY, NetConstants.DEFAULT_MSG_RECEIVE_EVENT_LOOP_PREFIX);
+            int threads = getUrl().getParameter(NetConstants.MSG_RECEIVE_EVENT_LOOP_THREADS_KEY, NetConstants.DEFAULT_IO_THREADS);
             this.msgEventLoopGroup = new BitactorEventLoopGroup(threads, new NamedThreadFactory(threadNamePrefix));
             logger.info(String.format("[Server open message receive event loop prefix   ] : %s  ", threadNamePrefix));
             logger.info(String.format("[Server open message receive event loop size     ] : %s  ", threads));

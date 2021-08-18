@@ -51,6 +51,12 @@ public class NettyModeServer extends NettyBaseServer {
             return;
         }
         NettyChannelContext nettyChannelContext = (NettyChannelContext) channelContext;
+        // 连接数限制
+        int accepts = getUrl().getParameter(NetConstants.ACCEPTS_KEY, NetConstants.DEFAULT_ACCEPTS);
+        if (accepts > 0 && getChannels().size() >= accepts) {
+            nettyChannelContext.getContext().close();
+            return;
+        }
         AckNettyChannel ackChannel = new AckNettyChannel(nettyChannelContext);
         ackChannel.setAttrVal(NetConstants.ACK_KEY, System.currentTimeMillis());
         getAckChannels().put(ackChannel.getChannelId(), ackChannel);
