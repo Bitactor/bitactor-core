@@ -80,12 +80,13 @@ public class NetConstants {
     public static final String THREAD_POOL_FIXED = "fixed";
     public static final String THREADS_KEY = "threads";
     public static final String QUEUES_KEY = "queues";
-    public static final String MESSAGE_RECEIVE_QUEUE_KEY = "message.receive.queue.key";
+
 
     // -1 代表不限制
     public static final int DEFAULT_QUEUES = -1;
     // 网络参数
     public static final String ACCEPTS_KEY = "accepts";
+    public static final int DEFAULT_ACCEPTS = 0;
     public static final String PAYLOAD_KEY = "payload";
     // 内存
     public static final String BUFFER_KEY = "buffer";
@@ -102,11 +103,12 @@ public class NetConstants {
     public static final int MIN_MSG_HEADER_SIZE = BYTES_1_LENGTH;
 
     // 业务线程相关
-    public static final String MESSAGE_RECEIVE_THREAD_NAME = "Message-Business";
-    public static final String MSG_RECEIVE_THREAD_POOL_OPEN_KEY = "msg.receive.thread.pool.open";
-    public static final String MSG_RECEIVE_ORDERED_QUEUE_OPEN_KEY = "msg.receive.ordered.queue.open";
-    public static final boolean DEFAULT_MSG_RECEIVE_THREAD_OPEN = false;
-    public static final boolean DEFAULT_MSG_RECEIVE_ORDERED_QUEUE_OPEN = false;
+    public static final String MESSAGE_RECEIVE_EVENT_LOOP_KEY = "message.receive.event.loop.key";
+    public static final String MSG_RECEIVE_EVENT_LOOP_KEY = "msg.receive.custom.event.loop.open";
+    public static final boolean DEFAULT_MSG_RECEIVE_EVENT_LOOP_OPEN = false;
+    public static final String MSG_RECEIVE_EVENT_LOOP_PREFIX_KEY = "msg.receive.custom.event.loop.prefix";
+    public static final String DEFAULT_MSG_RECEIVE_EVENT_LOOP_PREFIX = "msg-event-loop";
+    public static final String MSG_RECEIVE_EVENT_LOOP_THREADS_KEY = "msg.receive.custom.event.loop.threads";
 
     // 基础网络协议类型
     public static final String NET_PROTOCOL_KEY = "net.protocol";

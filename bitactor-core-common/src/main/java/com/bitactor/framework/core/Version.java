@@ -73,6 +73,10 @@ public final class Version {
                     logger.info("No codeSource for class " + cls.getName() + " when getVersion, use default version " + defaultVersion);
                 } else {
                     String file = codeSource.getLocation().getFile();
+                    // 可能路径是非标准的以 .jar 结尾
+                    while (file != null && file.length() > 0 && !file.endsWith(".jar")) {
+                        file = file.substring(0, file.length() - 1);
+                    }
                     if (file != null && file.length() > 0 && file.endsWith(".jar")) {
                         file = file.substring(0, file.length() - 4);
                         int i = file.lastIndexOf('/');
@@ -139,5 +143,4 @@ public final class Version {
             logger.error(e.getMessage(), e);
         }
     }
-
 }

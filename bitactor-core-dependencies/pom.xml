@@ -76,7 +76,7 @@
         <maven_release_plugin>2.5.1</maven_release_plugin>
         <nexus_staging_maven_plugin>1.6.7</nexus_staging_maven_plugin>
         <!--框架版本-->
-        <revision>1.0.3</revision>
+        <revision>1.0.4</revision>
         <!--test-->
         <junit_version>4.12</junit_version>
     </properties>
@@ -305,7 +305,7 @@
                 <version>${maven_gpg_plugin}</version>
                 <executions>
                     <execution>
-                        <phase>verify</phase>
+                        <phase>deploy</phase>
                         <goals>
                             <goal>sign</goal>
                         </goals>
@@ -341,7 +341,7 @@
                         <artifactId>maven-gpg-plugin</artifactId>
                         <executions>
                             <execution>
-                                <phase>verify</phase>
+                                <phase>deploy</phase>
                                 <goals>
                                     <goal>sign</goal>
                                 </goals>

@@ -777,4 +777,23 @@ public final class UrlProperties implements Serializable {
         }
         return addParameter(key, StringUtils.join(list, ","));
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UrlProperties that = (UrlProperties) o;
+        return port == that.port &&
+                Objects.equals(protocol, that.protocol) &&
+                Objects.equals(username, that.username) &&
+                Objects.equals(password, that.password) &&
+                Objects.equals(host, that.host) &&
+                Objects.equals(group, that.group) &&
+                Objects.equals(parameters, that.parameters);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(protocol, username, password, host, port, group, parameters);
+    }
 }

@@ -343,7 +343,7 @@ public class DecoderHandler extends ByteToMessageDecoder {
         }
     }
 
-   
+
     protected ByteBuf extractFrame(ChannelHandlerContext ctx, ByteBuf buffer, int index, int length) {
         return buffer.retainedSlice(index, length);
     }
