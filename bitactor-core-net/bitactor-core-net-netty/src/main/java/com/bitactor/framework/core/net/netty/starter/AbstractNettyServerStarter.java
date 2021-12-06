@@ -23,7 +23,9 @@ import com.bitactor.framework.core.constant.RPCConstants;
 import com.bitactor.framework.core.logger.Logger;
 import com.bitactor.framework.core.logger.LoggerFactory;
 import com.bitactor.framework.core.net.api.ChannelBound;
+import com.bitactor.framework.core.net.api.ChannelInit;
 import com.bitactor.framework.core.net.api.type.NetworkProtocol;
+import com.bitactor.framework.core.net.netty.channel.ChannelNettyOptions;
 import com.bitactor.framework.core.utils.assist.UrlPropertiesUtils;
 import io.netty.bootstrap.ServerBootstrap;
 
@@ -36,9 +38,11 @@ public abstract class AbstractNettyServerStarter<T> extends AbstractNettyStarter
     private static final Logger logger = LoggerFactory.getLogger(AbstractNettyServerStarter.class);
 
     private String protocol;
+    protected ChannelInit<ChannelNettyOptions> channelInit;
 
-    public AbstractNettyServerStarter(ChannelBound channelBound, String protocol) {
+    public AbstractNettyServerStarter(ChannelBound channelBound, ChannelInit<ChannelNettyOptions> channelInit, String protocol) {
         super(channelBound);
+        this.channelInit = channelInit;
         this.protocol = protocol;
     }
 
@@ -60,6 +64,7 @@ public abstract class AbstractNettyServerStarter<T> extends AbstractNettyStarter
         }
         printProto();
     }
+
 
     private void printProto() {
         if (getUrl().getParameter(NetConstants.PRINT_PROTO_KEY, NetConstants.DEFAULT_PRINT_PROTO)) {
@@ -85,6 +90,10 @@ public abstract class AbstractNettyServerStarter<T> extends AbstractNettyStarter
         if (getFuture() != null) {
             getFuture().channel().close();
         }
+    }
+
+    public ChannelInit<ChannelNettyOptions> getChannelInit() {
+        return channelInit;
     }
 
     protected abstract void addChannelHandler(ServerBootstrap bootstrap) throws Exception;

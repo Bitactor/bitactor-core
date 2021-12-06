@@ -22,7 +22,9 @@ import com.bitactor.framework.core.constant.NetConstants;
 import com.bitactor.framework.core.logger.Logger;
 import com.bitactor.framework.core.logger.LoggerFactory;
 import com.bitactor.framework.core.net.api.ChannelBound;
+import com.bitactor.framework.core.net.api.ChannelInit;
 import com.bitactor.framework.core.net.api.type.NetworkProtocol;
+import com.bitactor.framework.core.net.netty.channel.ChannelNettyOptions;
 import com.bitactor.framework.core.net.netty.handler.*;
 import com.bitactor.framework.core.net.netty.handler.ws.ChannelConnectSWSHandler;
 import com.bitactor.framework.core.net.netty.handler.ws.DecoderWSHandler;
@@ -59,8 +61,8 @@ import java.util.Objects;
 public class WSServerStarter extends AbstractNettyServerStarter<ServerChannel> {
     private static final Logger logger = LoggerFactory.getLogger(WSServerStarter.class);
 
-    public WSServerStarter(ChannelBound channelBound) {
-        super(channelBound, NetworkProtocol.WS);
+    public WSServerStarter(ChannelBound channelBound, ChannelInit<ChannelNettyOptions> channelInit) {
+        super(channelBound, channelInit, NetworkProtocol.WS);
     }
 
     @Override
@@ -101,6 +103,9 @@ public class WSServerStarter extends AbstractNettyServerStarter<ServerChannel> {
             bootstrap.childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
             bootstrap.childOption(ChannelOption.SO_REUSEADDR, Boolean.TRUE);
             bootstrap.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+            if (Objects.nonNull(channelInit)) {
+                channelInit.init(bootstrap::childOption);
+            }
             //绑定端口启动服务，并等待client连接
             setFuture(bootstrap.bind(port).sync());
             printStartLog();

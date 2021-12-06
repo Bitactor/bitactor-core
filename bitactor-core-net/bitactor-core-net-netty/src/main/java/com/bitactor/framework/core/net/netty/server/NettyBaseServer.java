@@ -22,6 +22,7 @@ import com.bitactor.framework.core.config.UrlProperties;
 import com.bitactor.framework.core.constant.NetConstants;
 import com.bitactor.framework.core.constant.RPCConstants;
 import com.bitactor.framework.core.eventloop.BitactorEventLoopGroup;
+import com.bitactor.framework.core.exception.ErrorConfigException;
 import com.bitactor.framework.core.exception.NotSupportException;
 import com.bitactor.framework.core.logger.Logger;
 import com.bitactor.framework.core.logger.LoggerFactory;
@@ -29,11 +30,13 @@ import com.bitactor.framework.core.net.api.*;
 import com.bitactor.framework.core.net.api.suport.SystemHandShakeDataBound;
 import com.bitactor.framework.core.net.api.transport.AbstractServer;
 import com.bitactor.framework.core.net.api.transport.HandShakeData;
+import com.bitactor.framework.core.net.netty.channel.ChannelNettyOptions;
 import com.bitactor.framework.core.net.netty.server.starter.KCPServerStarter;
 import com.bitactor.framework.core.net.netty.server.starter.TCPServerStarter;
 import com.bitactor.framework.core.net.netty.server.starter.WSServerStarter;
 import com.bitactor.framework.core.threadpool.NamedThreadFactory;
 import com.bitactor.framework.core.utils.collection.CollectionUtils;
+import com.bitactor.framework.core.utils.lang.StringUtils;
 
 import java.lang.reflect.Constructor;
 import java.net.InetSocketAddress;
@@ -141,12 +144,21 @@ public abstract class NettyBaseServer extends AbstractServer {
      */
     private void initializerStart() throws Throwable {
         String netProtocol = getNetProtocol();
+        ChannelInit<ChannelNettyOptions> channelInit = null;
+        String channelInitClazz = getChannelInitClazz();
+        if (!StringUtils.isBlank(channelInitClazz)) {
+            try {
+                channelInit = (ChannelInit) Class.forName(channelInitClazz).newInstance();
+            } catch (Exception e) {
+                throw new ErrorConfigException("Init server channel class failed: [" + channelInitClazz + "],please check config");
+            }
+        }
         if (netProtocol.equals(NetConstants.DEFAULT_TCP)) {
-            this.starter = new TCPServerStarter(this);
+            this.starter = new TCPServerStarter(this, channelInit);
         } else if (netProtocol.equals(NetConstants.DEFAULT_KCP)) {
-            this.starter = new KCPServerStarter(this);
+            this.starter = new KCPServerStarter(this, channelInit);
         } else if (netProtocol.equals(NetConstants.DEFAULT_WS)) {
-            this.starter = new WSServerStarter(this);
+            this.starter = new WSServerStarter(this, channelInit);
         } else {
             throw new NotSupportException("Not support the protocol: [" + netProtocol + "],please check config");
         }
@@ -156,6 +168,10 @@ public abstract class NettyBaseServer extends AbstractServer {
 
     public String getNetProtocol() {
         return getUrl().getParameter(NetConstants.NET_PROTOCOL_KEY, NetConstants.DEFAULT_NET_PROTOCOL);
+    }
+
+    public String getChannelInitClazz() {
+        return getUrl().getParameter(NetConstants.CHANNEL_INIT_CLASS_KEY);
     }
 
     /**

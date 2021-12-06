@@ -19,11 +19,13 @@ package com.bitactor.framework.core.net.netty.client.starter;
 
 
 import com.bitactor.framework.core.constant.NetConstants;
-import com.bitactor.framework.core.net.netty.handler.*;
-import com.bitactor.framework.core.net.api.ChannelBound;
-import com.bitactor.framework.core.net.api.type.NetworkProtocol;
 import com.bitactor.framework.core.logger.Logger;
 import com.bitactor.framework.core.logger.LoggerFactory;
+import com.bitactor.framework.core.net.api.ChannelBound;
+import com.bitactor.framework.core.net.api.ChannelInit;
+import com.bitactor.framework.core.net.api.type.NetworkProtocol;
+import com.bitactor.framework.core.net.netty.channel.ChannelNettyOptions;
+import com.bitactor.framework.core.net.netty.handler.*;
 import com.bitactor.framework.core.net.netty.starter.AbstractNettyClientStarter;
 import io.jpower.kcp.netty.ChannelOptionHelper;
 import io.jpower.kcp.netty.UkcpChannel;
@@ -35,6 +37,8 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 
+import java.util.Objects;
+
 /**
  * TCP协议启动器
  *
@@ -43,8 +47,8 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 public class KCPClientStarter extends AbstractNettyClientStarter<UkcpClientChannel> {
     private static final Logger logger = LoggerFactory.getLogger(KCPClientStarter.class);
 
-    public KCPClientStarter(ChannelBound channelBound) {
-        super(channelBound, NetworkProtocol.KCP);
+    public KCPClientStarter(ChannelBound channelBound, ChannelInit<ChannelNettyOptions> channelInit) {
+        super(channelBound, channelInit, NetworkProtocol.KCP);
     }
 
     @Override
@@ -100,6 +104,9 @@ public class KCPClientStarter extends AbstractNettyClientStarter<UkcpClientChann
                     .option(UkcpChannelOption.UKCP_SND_WND, getUrl().getParameter(NetConstants.KCP_SND_WND, NetConstants.DEFAULT_KCP_SND_WND))
                     .option(UkcpChannelOption.UKCP_RCV_WND, getUrl().getParameter(NetConstants.KCP_RCV_WND, NetConstants.DEFAULT_KCP_RCV_WND))
                     .option(UkcpChannelOption.UKCP_AUTO_SET_CONV, true);
+            if (Objects.nonNull(channelInit)) {
+                channelInit.init(bootstrap::option);
+            }
             setFuture(bootstrap.connect(getUrl().getHost(), getUrl().getPort()).sync());
             printStartLog();
             getChannelBound().startNotify();

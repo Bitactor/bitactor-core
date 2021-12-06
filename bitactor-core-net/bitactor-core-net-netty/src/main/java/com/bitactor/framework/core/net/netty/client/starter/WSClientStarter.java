@@ -18,15 +18,17 @@
 package com.bitactor.framework.core.net.netty.client.starter;
 
 import com.bitactor.framework.core.constant.NetConstants;
+import com.bitactor.framework.core.logger.Logger;
+import com.bitactor.framework.core.logger.LoggerFactory;
+import com.bitactor.framework.core.net.api.ChannelBound;
+import com.bitactor.framework.core.net.api.ChannelInit;
+import com.bitactor.framework.core.net.api.type.NetworkProtocol;
+import com.bitactor.framework.core.net.netty.channel.ChannelNettyOptions;
 import com.bitactor.framework.core.net.netty.handler.*;
 import com.bitactor.framework.core.net.netty.handler.ws.ChannelConnectCWSHandler;
 import com.bitactor.framework.core.net.netty.handler.ws.DecoderWSHandler;
-import com.bitactor.framework.core.net.netty.starter.AbstractNettyClientStarter;
-import com.bitactor.framework.core.net.api.ChannelBound;
-import com.bitactor.framework.core.net.api.type.NetworkProtocol;
-import com.bitactor.framework.core.logger.Logger;
-import com.bitactor.framework.core.logger.LoggerFactory;
 import com.bitactor.framework.core.net.netty.handler.ws.EncoderWSHandler;
+import com.bitactor.framework.core.net.netty.starter.AbstractNettyClientStarter;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelInitializer;
@@ -51,8 +53,8 @@ import java.util.Objects;
 public class WSClientStarter extends AbstractNettyClientStarter<NioSocketChannel> {
     private static final Logger logger = LoggerFactory.getLogger(WSClientStarter.class);
 
-    public WSClientStarter(ChannelBound channelBound) {
-        super(channelBound, NetworkProtocol.WS);
+    public WSClientStarter(ChannelBound channelBound, ChannelInit<ChannelNettyOptions> channelInit) {
+        super(channelBound, channelInit, NetworkProtocol.WS);
     }
 
     @Override
@@ -121,6 +123,9 @@ public class WSClientStarter extends AbstractNettyClientStarter<NioSocketChannel
                 }
 
             });
+            if (Objects.nonNull(channelInit)) {
+                channelInit.init(bootstrap::option);
+            }
             setFuture(bootstrap.connect(getUrl().getHost(), getUrl().getPort()).sync());
             printStartLog();
             getChannelBound().startNotify();

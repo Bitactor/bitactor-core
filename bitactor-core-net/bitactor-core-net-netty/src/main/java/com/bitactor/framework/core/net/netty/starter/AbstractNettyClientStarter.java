@@ -20,11 +20,13 @@ package com.bitactor.framework.core.net.netty.starter;
 
 import com.bitactor.framework.core.constant.NetConstants;
 import com.bitactor.framework.core.constant.RPCConstants;
-import com.bitactor.framework.core.utils.lang.StringUtils;
-import com.bitactor.framework.core.net.api.ChannelBound;
-import com.bitactor.framework.core.net.api.type.NetworkProtocol;
 import com.bitactor.framework.core.logger.Logger;
 import com.bitactor.framework.core.logger.LoggerFactory;
+import com.bitactor.framework.core.net.api.ChannelBound;
+import com.bitactor.framework.core.net.api.ChannelInit;
+import com.bitactor.framework.core.net.api.type.NetworkProtocol;
+import com.bitactor.framework.core.net.netty.channel.ChannelNettyOptions;
+import com.bitactor.framework.core.utils.lang.StringUtils;
 
 /**
  * 客户端启动器抽象类
@@ -35,10 +37,12 @@ public abstract class AbstractNettyClientStarter<T> extends AbstractNettyStarter
     private static final Logger logger = LoggerFactory.getLogger(AbstractNettyClientStarter.class);
 
     private String protocol;
+    protected ChannelInit<ChannelNettyOptions> channelInit;
 
-    public AbstractNettyClientStarter(ChannelBound channelBound, String protocol) {
+    public AbstractNettyClientStarter(ChannelBound channelBound, ChannelInit<ChannelNettyOptions> channelInit, String protocol) {
         super(channelBound);
         this.protocol = protocol;
+        this.channelInit = channelInit;
     }
 
     protected void printStartLog() {
@@ -67,6 +71,10 @@ public abstract class AbstractNettyClientStarter<T> extends AbstractNettyStarter
         if (getFuture() != null) {
             getFuture().channel().close();
         }
+    }
+
+    public ChannelInit<ChannelNettyOptions> getChannelInit() {
+        return channelInit;
     }
 
     protected abstract Class<? extends T> getChannelClass();

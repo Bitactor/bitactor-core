@@ -22,7 +22,9 @@ import com.bitactor.framework.core.constant.NetConstants;
 import com.bitactor.framework.core.logger.Logger;
 import com.bitactor.framework.core.logger.LoggerFactory;
 import com.bitactor.framework.core.net.api.ChannelBound;
+import com.bitactor.framework.core.net.api.ChannelInit;
 import com.bitactor.framework.core.net.api.type.NetworkProtocol;
+import com.bitactor.framework.core.net.netty.channel.ChannelNettyOptions;
 import com.bitactor.framework.core.net.netty.handler.*;
 import com.bitactor.framework.core.net.netty.starter.AbstractNettyServerStarter;
 import io.netty.bootstrap.ServerBootstrap;
@@ -39,6 +41,8 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
 
+import java.util.Objects;
+
 /**
  * TCP协议启动器
  *
@@ -47,8 +51,8 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 public class TCPServerStarter extends AbstractNettyServerStarter<ServerChannel> {
     private static final Logger logger = LoggerFactory.getLogger(TCPServerStarter.class);
 
-    public TCPServerStarter(ChannelBound channelBound) {
-        super(channelBound, NetworkProtocol.TCP);
+    public TCPServerStarter(ChannelBound channelBound, ChannelInit<ChannelNettyOptions> channelInit) {
+        super(channelBound, channelInit, NetworkProtocol.TCP);
     }
 
     @Override
@@ -89,6 +93,9 @@ public class TCPServerStarter extends AbstractNettyServerStarter<ServerChannel> 
             bootstrap.childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
             bootstrap.childOption(ChannelOption.SO_REUSEADDR, Boolean.TRUE);
             bootstrap.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+            if (Objects.nonNull(channelInit)) {
+                channelInit.init(bootstrap::childOption);
+            }
             //绑定端口启动服务，并等待client连接
             setFuture(bootstrap.bind(port).sync());
             printStartLog();
