@@ -54,7 +54,7 @@
         <spring_boot_version>2.2.0.RELEASE</spring_boot_version>
         <javassist_version>3.20.0-GA</javassist_version>
         <cglib_version>2.2.2</cglib_version>
-        <netty4_version>4.1.42.Final</netty4_version>
+        <netty4_version>4.1.70.Final</netty4_version>
         <kcp_netty>1.4.8</kcp_netty>
         <fastjson_version>1.2.46</fastjson_version>
         <protostuff_Serialize_versio>1.0.10</protostuff_Serialize_versio>
@@ -64,8 +64,8 @@
         <!-- Log libs -->
         <slf4j_version>1.7.25</slf4j_version>
         <jcl_version>1.2</jcl_version>
-        <log4j_version>1.2.16</log4j_version>
-        <log4j2_version>2.11.1</log4j2_version>
+        <log4j_version>1.2.27</log4j_version>
+        <log4j2_version>2.13.2</log4j2_version>
         <logback_version>1.2.2</logback_version>
         <commons_lang3_version>3.4</commons_lang3_version>
         <!--maven plugin-->
@@ -76,9 +76,9 @@
         <maven_release_plugin>2.5.1</maven_release_plugin>
         <nexus_staging_maven_plugin>1.6.7</nexus_staging_maven_plugin>
         <!--框架版本-->
-        <revision>1.0.4</revision>
+        <revision>1.1.0.SNAPSHOT</revision>
         <!--test-->
-        <junit_version>4.12</junit_version>
+        <junit_version>4.13.1</junit_version>
     </properties>
 
     <dependencyManagement>
