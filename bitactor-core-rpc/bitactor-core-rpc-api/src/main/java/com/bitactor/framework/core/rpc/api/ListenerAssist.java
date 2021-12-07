@@ -24,21 +24,21 @@ import com.bitactor.framework.core.net.api.ChannelContext;
 /**
  * @author WXH
  */
-public interface ListenerAssist {
+public interface ListenerAssist<CF> {
     /**
      * 绑定一个通道
      *
      * @param channelContext 通道上下文
      * @return Channel
      */
-    Channel buildChannel(ChannelContext channelContext);
+    Channel<CF> buildChannel(ChannelContext channelContext);
 
     /**
      * 对应通道激活通知
      *
      * @param channel Channel
      */
-    void activityChannel(Channel channel);
+    void activityChannel(Channel<CF> channel);
 
     /**
      * 服务关闭通知

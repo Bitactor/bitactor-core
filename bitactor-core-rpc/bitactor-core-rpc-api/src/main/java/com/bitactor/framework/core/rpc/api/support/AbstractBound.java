@@ -45,14 +45,14 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * @author WXH
  */
-public abstract class AbstractBound implements Bound {
+public abstract class AbstractBound<CF> implements Bound<CF> {
     private static final Logger logger = LoggerFactory.getLogger(AbstractBound.class);
-    protected ConcurrentMap<String, ModeClients> clients = new ConcurrentHashMap<String, ModeClients>();
+    protected ConcurrentMap<String, ModeClients<CF>> clients = new ConcurrentHashMap<>();
     protected JavassistProxyFactory proxyFactory = new JavassistProxyFactory();
     protected ConcurrentMap<Class, Object> proxyObjs = new ConcurrentHashMap<Class, Object>();
     protected ConcurrentHashMap<String, ConcurrentHashMap<Class, Object>> proxyServerObjs = new ConcurrentHashMap<String, ConcurrentHashMap<Class, Object>>();
     protected Set<String> apiNames = new HashSet<String>();
-    protected RouterAdapter routerAdapter = new PollingRouterAdapter();
+    protected RouterAdapter<CF> routerAdapter = new PollingRouterAdapter<CF>();
     private List<Filter> filters = new ArrayList<Filter>();
     private final String appGroup;
 
@@ -65,7 +65,7 @@ public abstract class AbstractBound implements Bound {
     }
 
     protected boolean checkUpdateUrl(UrlProperties url) {
-        ModeClients client = clients.get(url.getGroupAndId());
+        ModeClients<CF> client = clients.get(url.getGroupAndId());
         if (client != null && client.isActive()) {
             if (!UrlPropertiesUtils.isMatch(url, client.getUrl())) {
                 client.close();
@@ -78,7 +78,7 @@ public abstract class AbstractBound implements Bound {
     }
 
     @Override
-    public void addRouterAdapter(RouterAdapter routerAdapter) {
+    public void addRouterAdapter(RouterAdapter<CF> routerAdapter) {
         if (routerAdapter == null) {
             throw new NullPointerException("Null routerAdapter cannot be added");
         }
@@ -90,7 +90,7 @@ public abstract class AbstractBound implements Bound {
         if (StringUtils.isEmpty(routerAdapterStr)) {
             throw new NullPointerException("Null routerAdapter cannot be added");
         }
-        this.routerAdapter = (RouterAdapter) Class.forName(routerAdapterStr).newInstance();
+        this.routerAdapter = (RouterAdapter<CF>) Class.forName(routerAdapterStr).newInstance();
     }
 
     @Override
@@ -134,7 +134,7 @@ public abstract class AbstractBound implements Bound {
         // do nothing
     }
 
-    protected abstract void shutdownNotify(ModeClients client);
+    protected abstract void shutdownNotify(ModeClients<CF> client);
 
     /**
      * 判断传入的接口是否是本地实现了的接口
@@ -163,9 +163,9 @@ public abstract class AbstractBound implements Bound {
      *
      * @return
      */
-    protected List<AbstractClient> getActivityClients() {
-        List<AbstractClient> activityClients = new ArrayList<AbstractClient>();
-        for (ModeClients client : clients.values()) {
+    protected List<AbstractClient<CF>> getActivityClients() {
+        List<AbstractClient<CF>> activityClients = new ArrayList<>();
+        for (ModeClients<CF> client : clients.values()) {
             if (client.isActive()) {
                 activityClients.add(client.getClient());
             }
@@ -191,7 +191,7 @@ public abstract class AbstractBound implements Bound {
      * @return
      */
     public boolean isActive(String groupAndId) {
-        ModeClients client = clients.get(groupAndId);
+        ModeClients<CF> client = clients.get(groupAndId);
         if (client == null) {
             return false;
         }
@@ -207,7 +207,7 @@ public abstract class AbstractBound implements Bound {
      * @param groupAndId
      */
     public boolean closeClient(String groupAndId) {
-        ModeClients client = clients.remove(groupAndId);
+        ModeClients<CF> client = clients.remove(groupAndId);
         if (client == null) {
             return false;
         }

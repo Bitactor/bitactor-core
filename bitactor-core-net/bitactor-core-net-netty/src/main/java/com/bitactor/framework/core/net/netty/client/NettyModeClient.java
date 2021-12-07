@@ -20,19 +20,20 @@ package com.bitactor.framework.core.net.netty.client;
 import com.alibaba.fastjson.JSON;
 import com.bitactor.framework.core.config.UrlProperties;
 import com.bitactor.framework.core.constant.NetConstants;
-import com.bitactor.framework.core.net.netty.channel.AckNettyChannel;
-import com.bitactor.framework.core.net.netty.channel.NettyChannelContext;
-import com.bitactor.framework.core.utils.assist.RandomUtil;
+import com.bitactor.framework.core.logger.Logger;
+import com.bitactor.framework.core.logger.LoggerFactory;
 import com.bitactor.framework.core.net.api.Channel;
 import com.bitactor.framework.core.net.api.ChannelContext;
 import com.bitactor.framework.core.net.api.ChannelManager;
 import com.bitactor.framework.core.net.api.transport.HandShakeData;
 import com.bitactor.framework.core.net.api.transport.message.*;
-import com.bitactor.framework.core.logger.Logger;
-import com.bitactor.framework.core.logger.LoggerFactory;
+import com.bitactor.framework.core.net.netty.channel.AckNettyChannel;
+import com.bitactor.framework.core.net.netty.channel.NettyChannelContext;
 import com.bitactor.framework.core.net.netty.codec.NettyDefaultCodec;
 import com.bitactor.framework.core.net.netty.handler.HeartBeatCHandler;
+import com.bitactor.framework.core.utils.assist.RandomUtil;
 import io.jpower.kcp.netty.UkcpChannel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 
 /**
@@ -70,7 +71,7 @@ public class NettyModeClient extends NettyBaseClient {
             logger.error("Client close client ack channel but not exist,ack channel id:" + channelId);
             return;
         }
-        Channel channel = this.channelManager.registerChannel(getAckChannel().getChannelContext());
+        Channel<ChannelFuture> channel = this.channelManager.registerChannel(getAckChannel().getChannelContext());
         ChannelHandlerContext ctx = getAckChannel().getChannelContext().getContext();
         setAckChannel(null);
         if (channel == null) {
@@ -109,7 +110,7 @@ public class NettyModeClient extends NettyBaseClient {
 
     @Override
     public void receiveClose(String channelId, MessageClose close) {
-        Channel channel = this.getChannel();
+        Channel<ChannelFuture> channel = this.getChannel();
         if (channel == null) {
             logger.error("Can not find channel by method receiveClose ,channel id:" + channelId);
             return;
@@ -143,7 +144,7 @@ public class NettyModeClient extends NettyBaseClient {
 
     @Override
     public void receiveMessage(String channelId, MessageData message) {
-        Channel channel = this.getChannel();
+        Channel<ChannelFuture> channel = this.getChannel();
         if (channel == null) {
             logger.error("Can not find channel by method receiveMessage ,channel id:" + channelId);
             return;

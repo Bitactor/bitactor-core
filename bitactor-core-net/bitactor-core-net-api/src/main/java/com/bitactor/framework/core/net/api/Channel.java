@@ -29,7 +29,7 @@ import java.net.InetSocketAddress;
  *
  * @author WXH
  */
-public interface Channel {
+public interface Channel<CF> {
     /**
      * 获取通道id
      *
@@ -56,7 +56,7 @@ public interface Channel {
      *
      * @param message
      */
-    void send(MessageWrapper message);
+    CF send(MessageWrapper message);
 
     /**
      * 接收消息
@@ -78,12 +78,12 @@ public interface Channel {
     /**
      * 仅关闭通道
      */
-    void justClose();
+    CF justClose();
 
     /**
      * 关闭通道，但是可能会有其他的业务
      */
-    void close();
+    CF close();
 
     /**
      * 是否活跃

@@ -27,8 +27,8 @@ import java.util.List;
 /**
  * @author WXH
  */
-public interface Bound extends ListenerAssist {
-    public void addRouterAdapter(RouterAdapter routerAdapter);
+public interface Bound<CF> extends ListenerAssist<CF> {
+    public void addRouterAdapter(RouterAdapter<CF> routerAdapter);
 
     public void addRouterAdapter(String routerAdapterStr) throws Throwable;
 

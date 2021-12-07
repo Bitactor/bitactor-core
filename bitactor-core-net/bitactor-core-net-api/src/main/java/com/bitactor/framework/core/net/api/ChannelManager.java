@@ -23,13 +23,13 @@ package com.bitactor.framework.core.net.api;
  *
  * @author WXH
  */
-public interface ChannelManager {
+public interface ChannelManager<CF> {
     /**
      * 注册一个网络连接
      *
      * @param channelContext
      */
-    Channel registerChannel(ChannelContext channelContext);
+    Channel<CF> registerChannel(ChannelContext channelContext);
 
     /**
      * 销毁一个网络连接
@@ -37,14 +37,14 @@ public interface ChannelManager {
      * @param channelId
      * @return Channel
      */
-    Channel destroyChannel(String channelId);
+    Channel<CF> destroyChannel(String channelId);
 
     /**
      * 通知对应通道被激活
      *
      * @param channel 被激活的通道
      */
-    void activityChannel(Channel channel);
+    void activityChannel(Channel<CF> channel);
 
     /**
      * 服务关闭通知

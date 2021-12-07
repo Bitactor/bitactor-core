@@ -26,6 +26,7 @@ import com.bitactor.framework.core.net.api.Channel;
 import com.bitactor.framework.core.net.api.ChannelContext;
 import com.bitactor.framework.core.net.api.transport.AbstractServer;
 import com.bitactor.framework.core.net.api.transport.message.MessageWrapper;
+import com.bitactor.framework.core.net.netty.channel.ChannelNettySendPolicy;
 import com.bitactor.framework.core.net.netty.channel.NettyChannel;
 import com.bitactor.framework.core.net.netty.channel.NettyChannelContext;
 import com.bitactor.framework.core.net.netty.server.NettyModeServer;
@@ -42,6 +43,7 @@ import com.bitactor.framework.core.rpc.netty.codec.MessageRPCRequest;
 import com.bitactor.framework.core.rpc.netty.codec.MessageRPCResponse;
 import com.bitactor.framework.core.rpc.netty.provider.ProviderListener;
 import com.bitactor.framework.core.utils.collection.CollectionUtils;
+import io.netty.channel.ChannelFuture;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -53,11 +55,16 @@ import java.util.concurrent.CompletableFuture;
 /**
  * @author WXH
  */
-public class ProviderExport extends AbstractExport {
+public class ProviderExport extends AbstractExport<ChannelFuture> {
     private static final Logger logger = LoggerFactory.getLogger(ProviderExport.class);
-    private AbstractServer server;
+    private AbstractServer<ChannelFuture> server;
+    private ChannelNettySendPolicy sendPolicy;
 
     public ProviderExport() {
+    }
+
+    public ProviderExport(ChannelNettySendPolicy sendPolicy) {
+        this.sendPolicy = sendPolicy;
     }
 
     private boolean checkCanExport() {
@@ -95,7 +102,7 @@ public class ProviderExport extends AbstractExport {
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public Channel buildChannel(ChannelContext channelContext) {
-        return new NettyChannel((NettyChannelContext) channelContext) {
+        return new NettyChannel((NettyChannelContext) channelContext, sendPolicy) {
             @Override
             public void onReceived(MessageWrapper message) {
                 if (message instanceof MessageRPCRequest) {
@@ -223,7 +230,7 @@ public class ProviderExport extends AbstractExport {
     }
 
     @Override
-    public void activityChannel(Channel channel) {
+    public void activityChannel(Channel<ChannelFuture> channel) {
         // TODO: 2019/6/27 provider 端是否需要做处理 ，待考虑
     }
 

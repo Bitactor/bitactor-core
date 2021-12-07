@@ -26,7 +26,7 @@ import com.bitactor.framework.core.net.api.transport.message.MessageWrapper;
 public class AckNettyChannel extends AbstractNettyChannel {
 
     public AckNettyChannel(NettyChannelContext channelContext) {
-        super(channelContext);
+        super(channelContext, null);
     }
 
     @Override

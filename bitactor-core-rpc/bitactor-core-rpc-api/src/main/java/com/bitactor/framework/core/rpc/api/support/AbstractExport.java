@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * @author WXH
  */
-public abstract class AbstractExport implements Export {
+public abstract class AbstractExport<CF> implements Export<CF> {
     private static final Logger logger = LoggerFactory.getLogger(AbstractExport.class);
 
     private JavassistProxyFactory proxyFactory = new JavassistProxyFactory();

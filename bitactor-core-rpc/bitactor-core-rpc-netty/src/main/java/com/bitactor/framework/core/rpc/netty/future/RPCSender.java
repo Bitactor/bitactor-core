@@ -27,6 +27,7 @@ import com.bitactor.framework.core.rpc.api.async.AsyncResult;
 import com.bitactor.framework.core.rpc.api.async.AsyncResultImpl;
 import com.bitactor.framework.core.rpc.netty.codec.MessageRPCRequest;
 import com.bitactor.framework.core.threadpool.NamedThreadFactory;
+import io.netty.channel.ChannelFuture;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -53,7 +54,7 @@ public class RPCSender {
      * @return
      * @throws Exception
      */
-    public static RPCResponse sync(Channel channel, RPCRequest request) throws Exception {
+    public static RPCResponse sync(Channel<ChannelFuture> channel, RPCRequest request) throws Exception {
         return sync(channel, request, 0);
     }
 
@@ -66,7 +67,7 @@ public class RPCSender {
      * @return
      * @throws Exception
      */
-    public static RPCResponse sync(Channel channel, RPCRequest request, long timeout) throws Exception {
+    public static RPCResponse sync(Channel<ChannelFuture> channel, RPCRequest request, long timeout) throws Exception {
         timeout = timeout > 0 ? timeout : channel.getUrl().getPositiveParameter(NetConstants.TIMEOUT_KEY, NetConstants.DEFAULT_TIMEOUT);
         RequestRPCFuture<RPCResponse> future = async(channel, request, timeout);
         return future.get(timeout, TimeUnit.MILLISECONDS);
@@ -79,7 +80,7 @@ public class RPCSender {
      * @param request
      * @return
      */
-    public static RequestRPCFuture<RPCResponse> async(Channel channel, RPCRequest request) {
+    public static RequestRPCFuture<RPCResponse> async(Channel<ChannelFuture> channel, RPCRequest request) {
         return async(channel, request, 0);
     }
 
@@ -91,7 +92,7 @@ public class RPCSender {
      * @param timeout
      * @return
      */
-    public static RequestRPCFuture<RPCResponse> async(Channel channel, RPCRequest request, long timeout) {
+    public static RequestRPCFuture<RPCResponse> async(Channel<ChannelFuture> channel, RPCRequest request, long timeout) {
         final long finalTimeout = timeout > 0 ? timeout : channel.getUrl().getPositiveParameter(NetConstants.TIMEOUT_KEY, NetConstants.DEFAULT_TIMEOUT);
         RequestRPCFuture<RPCResponse> future = new RequestRPCFuture<>(request);
         FUTURES.put(request.getReqId(), future);
@@ -111,11 +112,11 @@ public class RPCSender {
      * @param request
      * @return
      */
-    public static void send(Channel channel, RPCRequest request) {
+    public static void send(Channel<ChannelFuture> channel, RPCRequest request) {
         channel.send(new MessageRPCRequest(request));
     }
 
-    public static void received(RPCResponse response, Channel channel) {
+    public static void received(RPCResponse response, Channel<ChannelFuture> channel) {
         RequestRPCFuture<RPCResponse> future = FUTURES.remove(response.getRequest().getReqId());
         if (future != null) {
             EXECUTOR_SERVICE.execute(() -> {

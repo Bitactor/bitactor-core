@@ -18,25 +18,33 @@
 package com.bitactor.framework.core.net.netty.channel;
 
 import com.bitactor.framework.core.config.UrlProperties;
-import com.bitactor.framework.core.net.api.Channel;
-import com.bitactor.framework.core.net.api.transport.message.MessageClose;
-import com.bitactor.framework.core.net.api.transport.message.MessageWrapper;
+import com.bitactor.framework.core.exception.NetLimitWritableException;
 import com.bitactor.framework.core.logger.Logger;
 import com.bitactor.framework.core.logger.LoggerFactory;
+import com.bitactor.framework.core.net.api.Channel;
+import com.bitactor.framework.core.net.api.transport.message.MessageClose;
+import com.bitactor.framework.core.net.api.transport.message.MessageData;
+import com.bitactor.framework.core.net.api.transport.message.MessageWrapper;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelPromise;
 
 import java.net.InetSocketAddress;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author WXH
  */
-public abstract class AbstractNettyChannel implements Channel {
+public abstract class AbstractNettyChannel implements Channel<ChannelFuture> {
     private static final Logger logger = LoggerFactory.getLogger(AbstractNettyChannel.class);
     private NettyChannelContext channelContext;
+    private ChannelNettySendPolicy sendPolicy;
     private ConcurrentHashMap<String, Object> longMap = new ConcurrentHashMap<String, Object>();
 
-    public AbstractNettyChannel(NettyChannelContext channelContext) {
+    public AbstractNettyChannel(NettyChannelContext channelContext, ChannelNettySendPolicy sendPolicy) {
         this.channelContext = channelContext;
+        this.sendPolicy = sendPolicy;
     }
 
     public NettyChannelContext getChannelContext() {
@@ -59,14 +67,21 @@ public abstract class AbstractNettyChannel implements Channel {
     }
 
     @Override
-    public void justClose() {
-        getChannelContext().getContext().close();
+    public ChannelFuture justClose() {
+        return getChannelContext().getContext().close();
     }
 
     @Override
-    public void close() {
-        send(new MessageClose());
-        getChannelContext().getContext().close();
+    public ChannelFuture close() {
+        ChannelFuture channelFuture = send(new MessageClose());
+        ChannelPromise channelPromise = getChannelContext().getContext().newPromise();
+        channelFuture.addListener(new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture channelFuture) throws Exception {
+                getChannelContext().getContext().close(channelPromise);
+            }
+        });
+        return channelPromise;
     }
 
     @Override
@@ -75,8 +90,19 @@ public abstract class AbstractNettyChannel implements Channel {
     }
 
     @Override
-    public void send(MessageWrapper message) {
-        this.getChannelContext().getContext().writeAndFlush(message);
+    public ChannelFuture send(MessageWrapper message) {
+        ChannelPromise channelPromise = this.getChannelContext().getContext().newPromise();
+        if (Objects.nonNull(sendPolicy) && message instanceof MessageData) {
+            return sendPolicy.sendHandler(message, this.getChannelContext().getContext(), channelPromise);
+        } else {
+            io.netty.channel.Channel channel = this.getChannelContext().getContext().channel();
+            if (channel.isWritable()) {
+                return channel.writeAndFlush(message, channelPromise);
+            } else {
+                channelPromise.setFailure(new NetLimitWritableException("Send msg limit by channel is not writable."));
+            }
+            return channelPromise;
+        }
     }
 
     @Override

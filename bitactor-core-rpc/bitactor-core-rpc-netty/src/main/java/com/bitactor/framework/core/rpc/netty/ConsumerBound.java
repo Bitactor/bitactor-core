@@ -28,6 +28,7 @@ import com.bitactor.framework.core.net.api.Channel;
 import com.bitactor.framework.core.net.api.ChannelContext;
 import com.bitactor.framework.core.net.api.transport.AbstractClient;
 import com.bitactor.framework.core.net.api.transport.message.MessageWrapper;
+import com.bitactor.framework.core.net.netty.channel.ChannelNettySendPolicy;
 import com.bitactor.framework.core.net.netty.channel.NettyChannel;
 import com.bitactor.framework.core.net.netty.channel.NettyChannelContext;
 import com.bitactor.framework.core.net.netty.client.NettyModeClient;
@@ -45,6 +46,7 @@ import com.bitactor.framework.core.rpc.netty.consumer.ConsumerListener;
 import com.bitactor.framework.core.rpc.netty.future.RPCSender;
 import com.bitactor.framework.core.rpc.netty.future.RequestRPCFuture;
 import com.bitactor.framework.core.utils.collection.CollectionUtils;
+import io.netty.channel.ChannelFuture;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -56,16 +58,21 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * @author WXH
  */
-public abstract class ConsumerBound extends AbstractBound {
+public abstract class ConsumerBound extends AbstractBound<ChannelFuture> {
     private static final Logger logger = LoggerFactory.getLogger(ConsumerBound.class);
 
     private final Lock getAllServerLock = new ReentrantLock();
     private final Lock getAssignServerLock = new ReentrantLock();
+    private ChannelNettySendPolicy sendPolicy;
 
-    public ConsumerBound(String serverName) {
-        super(serverName);
+    public ConsumerBound(String appGroup) {
+        super(appGroup);
     }
 
+    public ConsumerBound(String appGroup, ChannelNettySendPolicy sendPolicy) {
+        super(appGroup);
+        this.sendPolicy = sendPolicy;
+    }
 
     public boolean addUrl(UrlProperties url) throws Throwable {
         if (!checkUpdateUrl(url)) {
@@ -73,7 +80,7 @@ public abstract class ConsumerBound extends AbstractBound {
         }
         // 判断当前url的实例是否是本地服务，若是远程服务则添加新的连接 并请更新
         if (!VMCache.getInstance().isLocalServerTypeId(url.getGroupAndId()) && !isActive(url.getGroupAndId())) {
-            ModeClients modeClients = new ModeClients(url, () -> {
+            ModeClients<ChannelFuture> modeClients = new ModeClients<ChannelFuture>(url, () -> {
                 return new NettyModeClient(new ConsumerListener(this), url);
             });
             clients.put(url.getGroupAndId(), modeClients);
@@ -166,7 +173,7 @@ public abstract class ConsumerBound extends AbstractBound {
                                 //本地调用
                                 result = invokeLocal(getInterface(), invocation.getLocalInvocation());
                             } else {
-                                Channel channel = routerAdapter.routerAdapter(getActivityClients(), request);
+                                Channel<ChannelFuture> channel = routerAdapter.routerAdapter(getActivityClients(), request);
                                 result = invokeRPC(self, proceed, originalMethod, request, channel);
                             }
                         }
@@ -180,7 +187,7 @@ public abstract class ConsumerBound extends AbstractBound {
                             throw new IllegalityRPCException("Broadcast Method: " + thisMethod.getName() + " must be void. ");
                         }
                         //远程调用
-                        for (AbstractClient client : getActivityClients()) {
+                        for (AbstractClient<ChannelFuture> client : getActivityClients()) {
                             try {//FutureRPCRequest future = new FutureRPCRequest(0, client.getChannel(), request);
                                 RPCSender.send(client.getChannel(), request);
                             } catch (Exception e) {
@@ -211,7 +218,7 @@ public abstract class ConsumerBound extends AbstractBound {
                             result = invokeLocal(getInterface(), invocation.getLocalInvocation());
                         } else {
                             //远程调用
-                            Channel channel = clients.get(getTempStr()).getChannel();
+                            Channel<ChannelFuture> channel = clients.get(getTempStr()).getChannel();
                             result = invokeRPC(self, proceed, originalMethod, request, channel);
                         }
                         return result;
@@ -225,7 +232,7 @@ public abstract class ConsumerBound extends AbstractBound {
     }
 
 
-    private Object invokeRPC(Object self, Method proceed, Method originalMethod, RPCRequest request, Channel channel) throws Throwable {
+    private Object invokeRPC(Object self, Method proceed, Method originalMethod, RPCRequest request, Channel<ChannelFuture> channel) throws Throwable {
         Object result = null;
         //远程调用
         doFilterBefore(request);
@@ -260,8 +267,8 @@ public abstract class ConsumerBound extends AbstractBound {
     }
 
     @Override
-    public Channel buildChannel(ChannelContext channelContext) {
-        return new NettyChannel((NettyChannelContext) channelContext) {
+    public Channel<ChannelFuture> buildChannel(ChannelContext channelContext) {
+        return new NettyChannel((NettyChannelContext) channelContext, sendPolicy) {
             @Override
             public void onReceived(MessageWrapper message) {
                 if (message instanceof MessageRPCResponse) {
@@ -276,7 +283,7 @@ public abstract class ConsumerBound extends AbstractBound {
 
             @Override
             public void onDestroy() {
-                ModeClients client = clients.remove(getUrl().getGroupAndId());
+                ModeClients<ChannelFuture> client = clients.remove(getUrl().getGroupAndId());
                 if (client != null && client.isActive()) {
                     logger.warn("will close channel by groupAndId : " + getUrl().getGroupAndId());
                     client.close();
@@ -288,7 +295,7 @@ public abstract class ConsumerBound extends AbstractBound {
     }
 
     @Override
-    public void activityChannel(Channel channel) {
+    public void activityChannel(Channel<ChannelFuture> channel) {
         // do nothing
     }
 
@@ -298,7 +305,7 @@ public abstract class ConsumerBound extends AbstractBound {
         if (CollectionUtils.isEmpty(clients)) {
             return false;
         }
-        for (ModeClients client : clients.values()) {
+        for (ModeClients<ChannelFuture> client : clients.values()) {
             if (client.isActive()) {
                 return true;
             }
@@ -308,7 +315,7 @@ public abstract class ConsumerBound extends AbstractBound {
 
     @Override
     public void shutdown() {
-        for (ModeClients client : clients.values()) {
+        for (ModeClients<ChannelFuture> client : clients.values()) {
             client.close();
         }
         // RPCSender shutdown

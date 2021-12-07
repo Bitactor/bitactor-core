@@ -29,8 +29,8 @@ public abstract class NettyChannel extends AbstractNettyChannel {
 
     private long lastHeartbeatTime = System.currentTimeMillis();
 
-    public NettyChannel(NettyChannelContext channelContext) {
-        super(channelContext);
+    public NettyChannel(NettyChannelContext channelContext, ChannelNettySendPolicy sendPolicy) {
+        super(channelContext, sendPolicy);
         setAttrVal(NetConstants.ACK_KEY, System.currentTimeMillis());
         setAttrVal(NetConstants.CONNECT_TIME, System.currentTimeMillis());
     }

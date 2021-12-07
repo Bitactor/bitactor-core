@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * @author WXH
  */
-public interface Export extends ListenerAssist {
+public interface Export<CF> extends ListenerAssist<CF> {
     <T> void addService(Class<T> service) throws Throwable;
 
     <T> void addServices(List<Class<T>> services) throws Throwable;
