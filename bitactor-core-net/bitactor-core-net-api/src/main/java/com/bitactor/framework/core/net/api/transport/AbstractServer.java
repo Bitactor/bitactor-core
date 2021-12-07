@@ -34,21 +34,21 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author WXH
  */
-public abstract class AbstractServer extends AbstractNetPoint implements Server {
+public abstract class AbstractServer<CF> extends AbstractNetPoint implements Server<CF> {
 
     /**
      * 网络服务管理器
      */
-    protected final ChannelManager channelManager;
+    protected final ChannelManager<CF> channelManager;
 
     protected final UrlProperties url;
 
     /**
      * 通道集合;
      */
-    private ConcurrentHashMap<String, Channel> channels = new ConcurrentHashMap<String, Channel>();
+    private ConcurrentHashMap<String, Channel<CF>> channels = new ConcurrentHashMap<>();
 
-    public AbstractServer(ChannelManager channelManager, UrlProperties url) {
+    public AbstractServer(ChannelManager<CF> channelManager, UrlProperties url) {
         this.channelManager = channelManager;
         this.url = url;
     }
@@ -56,7 +56,7 @@ public abstract class AbstractServer extends AbstractNetPoint implements Server 
     private Timer timer;
 
     @Override
-    public AbstractServer threadStart() {
+    public AbstractServer<CF> threadStart() {
         EndpointThread serverThread = new EndpointThread(this);
         serverThread.setDaemon(true);
         serverThread.setName("#ServerStartThread");
@@ -84,7 +84,7 @@ public abstract class AbstractServer extends AbstractNetPoint implements Server 
      * @param channelId 通道id
      * @return 通道实例
      */
-    public Channel getChannel(String channelId) {
+    public Channel<CF> getChannel(String channelId) {
         return channels.get(channelId);
     }
 
@@ -93,7 +93,7 @@ public abstract class AbstractServer extends AbstractNetPoint implements Server 
      *
      * @return
      */
-    public Collection<Channel> getChannels() {
+    public Collection<Channel<CF>> getChannels() {
         return channels.values();
     }
 
@@ -103,10 +103,10 @@ public abstract class AbstractServer extends AbstractNetPoint implements Server 
      * @param channelIds
      * @return
      */
-    public List<Channel> getChannels(List<String> channelIds) {
-        List<Channel> resultChannels = new ArrayList<Channel>();
+    public List<Channel<CF>> getChannels(List<String> channelIds) {
+        List<Channel<CF>> resultChannels = new ArrayList<>();
         for (String channelId : channelIds) {
-            Channel channel = this.channels.get(channelId);
+            Channel<CF> channel = this.channels.get(channelId);
             if (channel != null) {
                 resultChannels.add(channel);
             }
@@ -117,7 +117,7 @@ public abstract class AbstractServer extends AbstractNetPoint implements Server 
     /**
      * 添加一个通道
      */
-    protected void addChannel(Channel channel) {
+    protected void addChannel(Channel<CF> channel) {
         channels.putIfAbsent(channel.getChannelId(), channel);
 
     }
@@ -128,7 +128,7 @@ public abstract class AbstractServer extends AbstractNetPoint implements Server 
      * @param channelId 通道Id
      * @return Channel
      */
-    protected Channel removeChannel(String channelId) {
+    protected Channel<CF> removeChannel(String channelId) {
         return channels.remove(channelId);
     }
 

@@ -26,7 +26,7 @@ import java.util.List;
  *
  * @author WXH
  */
-public interface Server {
+public interface Server<CF> {
 
     /**
      * is bound.
@@ -40,20 +40,20 @@ public interface Server {
      *
      * @return channels
      */
-    Collection<Channel> getChannels();
+    Collection<Channel<CF>> getChannels();
 
     /**
      * get channel.
      *
      * @return channel
      */
-    Channel getChannel(String channelId);
+    Channel<CF> getChannel(String channelId);
 
     /**
      * get channel.
      *
      * @return channel
      */
-    List<Channel> getChannels(List<String> channelIds);
+    List<Channel<CF>> getChannels(List<String> channelIds);
 
 }

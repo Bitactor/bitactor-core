@@ -22,36 +22,37 @@ import com.bitactor.framework.core.net.api.Channel;
 import com.bitactor.framework.core.net.api.ChannelContext;
 import com.bitactor.framework.core.net.api.ChannelManager;
 import com.bitactor.framework.core.rpc.api.ListenerAssist;
+import io.netty.channel.ChannelFuture;
 
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author WXH
  */
-public class ProviderListener implements ChannelManager {
-    private ListenerAssist listenerAssist;
+public class ProviderListener implements ChannelManager<ChannelFuture> {
+    private ListenerAssist<ChannelFuture> listenerAssist;
 
-    public ProviderListener(ListenerAssist listenerAssist) {
+    public ProviderListener(ListenerAssist<ChannelFuture> listenerAssist) {
         this.listenerAssist = listenerAssist;
     }
 
-    private ConcurrentHashMap<String, Channel> channels = new ConcurrentHashMap<String, Channel>();
+    private ConcurrentHashMap<String, Channel<ChannelFuture>> channels = new ConcurrentHashMap<>();
 
     @Override
-    public Channel registerChannel(ChannelContext channelContext) {
-        Channel channel = listenerAssist.buildChannel(channelContext);
+    public Channel<ChannelFuture> registerChannel(ChannelContext channelContext) {
+        Channel<ChannelFuture> channel = listenerAssist.buildChannel(channelContext);
         channels.put(channel.getChannelId(), channel);
         return channel;
 
     }
 
     @Override
-    public Channel destroyChannel(String channelId) {
+    public Channel<ChannelFuture> destroyChannel(String channelId) {
         return channels.remove(channelId);
     }
 
     @Override
-    public void activityChannel(Channel channel) {
+    public void activityChannel(Channel<ChannelFuture> channel) {
         if (channels.containsKey(channel.getChannelId())) {
             listenerAssist.activityChannel(channel);
         }
@@ -62,7 +63,7 @@ public class ProviderListener implements ChannelManager {
         listenerAssist.shutdownNotify();
     }
 
-    public Channel getChannel(String channelId) {
+    public Channel<ChannelFuture> getChannel(String channelId) {
         return channels.get(channelId);
     }
 }

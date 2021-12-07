@@ -37,6 +37,7 @@ import com.bitactor.framework.core.net.netty.server.starter.WSServerStarter;
 import com.bitactor.framework.core.threadpool.NamedThreadFactory;
 import com.bitactor.framework.core.utils.collection.CollectionUtils;
 import com.bitactor.framework.core.utils.lang.StringUtils;
+import io.netty.channel.ChannelFuture;
 
 import java.lang.reflect.Constructor;
 import java.net.InetSocketAddress;
@@ -52,12 +53,12 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author WXH
  */
-public abstract class NettyBaseServer extends AbstractServer {
+public abstract class NettyBaseServer extends AbstractServer<ChannelFuture> {
     private static final Logger logger = LoggerFactory.getLogger(NettyBaseServer.class);
     /**
      * 等待确认的通道集合;
      */
-    private ConcurrentHashMap<String, Channel> ackChannels = new ConcurrentHashMap<String, Channel>();
+    private ConcurrentHashMap<String, Channel<ChannelFuture>> ackChannels = new ConcurrentHashMap<>();
     /**
      * 握手消息
      */
@@ -88,7 +89,7 @@ public abstract class NettyBaseServer extends AbstractServer {
         return HandShake;
     }
 
-    protected ConcurrentHashMap<String, Channel> getAckChannels() {
+    protected ConcurrentHashMap<String, Channel<ChannelFuture>> getAckChannels() {
         return ackChannels;
     }
 
@@ -105,7 +106,7 @@ public abstract class NettyBaseServer extends AbstractServer {
         return byteOrder;
     }
 
-    public NettyBaseServer(ChannelManager channelManager, UrlProperties url) throws Throwable {
+    public NettyBaseServer(ChannelManager<ChannelFuture> channelManager, UrlProperties url) throws Throwable {
         super(channelManager, url);
         this.initializer();
     }
@@ -240,12 +241,12 @@ public abstract class NettyBaseServer extends AbstractServer {
         getTimer().schedule(new TimerTask() {
             @Override
             public void run() {
-                for (Channel channel : ackChannels.values()) {
+                for (Channel<ChannelFuture> channel : ackChannels.values()) {
                     checkTimeOutAndClose(channel);
                 }
             }
 
-            private void checkTimeOutAndClose(Channel channel) {
+            private void checkTimeOutAndClose(Channel<ChannelFuture> channel) {
                 long timeout = getUrl().getParameter(NetConstants.ACK_TIMEOUT_KEY, NetConstants.DEFAULT_ACK_TIMEOUT);
                 if (System.currentTimeMillis() - channel.getAttrVal(NetConstants.ACK_KEY, 0L) > timeout) {
                     logger.info("Ack timeout will close connection id: " + channel.getChannelId() + " remoteAddress" + channel

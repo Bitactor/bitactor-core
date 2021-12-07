@@ -16,26 +16,23 @@
  * limitations under the License.
  */
 
-package com.bitactor.framework.core.net.api;
-
+package com.bitactor.framework.core.exception;
 
 /**
- * 网络客户端接口
+ * 无匹配接口异常
  *
  * @author WXH
  */
-public interface Client<CF> {
 
-    /**
-     * 重连接
-     */
-    void reconnect();
+public class NetLimitWritableException extends RuntimeException {
 
-    /**
-     * 获取通道
-     *
-     * @return channel
-     */
-    Channel<CF> getChannel();
+    private static final long serialVersionUID = 734642560637441871L;
 
+    public NetLimitWritableException() {
+        super();
+    }
+
+    public NetLimitWritableException(String msg) {
+        super(msg);
+    }
 }

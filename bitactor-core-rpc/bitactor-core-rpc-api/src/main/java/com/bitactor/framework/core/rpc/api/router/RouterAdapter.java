@@ -27,12 +27,13 @@ import java.util.List;
 /**
  * @author WXH
  */
-public interface RouterAdapter {
+public interface RouterAdapter<CF> {
     /**
      * 网络通道路由适配器接口
+     *
      * @param clients
      * @param request
      * @return
      */
-    Channel routerAdapter(final List<AbstractClient> clients, final RPCRequest request);
+    Channel<CF> routerAdapter(final List<AbstractClient<CF>> clients, final RPCRequest request);
 }

@@ -30,6 +30,7 @@ import com.bitactor.framework.core.net.api.transport.message.*;
 import com.bitactor.framework.core.net.netty.channel.AckNettyChannel;
 import com.bitactor.framework.core.net.netty.channel.NettyChannelContext;
 import com.bitactor.framework.core.net.netty.handler.HeartBeatSHandler;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 
 /**
@@ -41,7 +42,7 @@ public class NettyModeServer extends NettyBaseServer {
     private static final Logger logger = LoggerFactory.getLogger(NettyModeServer.class);
 
 
-    public NettyModeServer(ChannelManager channelManager, UrlProperties url) throws Throwable {
+    public NettyModeServer(ChannelManager<ChannelFuture> channelManager, UrlProperties url) throws Throwable {
         super(channelManager, url);
     }
 
@@ -69,7 +70,7 @@ public class NettyModeServer extends NettyBaseServer {
             logger.error("Server close server ack channel but not exist,ack channel id:" + channelId);
             return;
         }
-        Channel channel = this.channelManager.registerChannel(ackChannel.getChannelContext());
+        Channel<ChannelFuture> channel = this.channelManager.registerChannel(ackChannel.getChannelContext());
         if (channel == null) {
             logger.error("Server close server will register channel,by channelManager return null");
             return;
@@ -91,7 +92,7 @@ public class NettyModeServer extends NettyBaseServer {
 
     }
 
-    private void complete(Channel channel) {
+    private void complete(Channel<ChannelFuture> channel) {
         // 如果开启了消息接收线程池
         if (isOpenMsgReceiveEventLoop()) {
             channel.setAttrVal(NetConstants.MESSAGE_RECEIVE_EVENT_LOOP_KEY, getMsgEventLoopGroup().next());
@@ -108,7 +109,7 @@ public class NettyModeServer extends NettyBaseServer {
 
     @Override
     public void receiveClose(String channelId, MessageClose close) {
-        Channel channel = this.getChannel(channelId);
+        Channel<ChannelFuture> channel = this.getChannel(channelId);
         if (channel == null) {
             logger.error("Server receiveClose msg but can not find channel, channel id:" + channelId);
             return;
@@ -118,7 +119,7 @@ public class NettyModeServer extends NettyBaseServer {
 
     @Override
     public void receiveHeartbeat(String channelId, MessageHeartBeat heartBeat) {
-        Channel channel = this.getChannel(channelId);
+        Channel<ChannelFuture> channel = this.getChannel(channelId);
         if (channel == null) {
             logger.error("Server receiveHeartbeat msg but can not find channel, channel id:" + channelId);
             return;
@@ -130,7 +131,7 @@ public class NettyModeServer extends NettyBaseServer {
 
     @Override
     public void receiveMessage(String channelId, MessageData message) {
-        Channel channel = this.getChannel(channelId);
+        Channel<ChannelFuture> channel = this.getChannel(channelId);
         if (channel == null) {
             logger.error("Server receive msg but can not find channel, channel id:" + channelId);
             return;
@@ -149,12 +150,12 @@ public class NettyModeServer extends NettyBaseServer {
 
     @Override
     public void closeNotify(String channelId) {
-        Channel ackChannel = this.getAckChannels().remove(channelId);
+        Channel<ChannelFuture> ackChannel = this.getAckChannels().remove(channelId);
         if (ackChannel != null) {
             logger.debug("Server ACK channel has closed channel id:" + channelId + " remote address : " + ackChannel.getRemoteAddress());
             return;
         }
-        Channel channel = this.removeChannel(channelId);
+        Channel<ChannelFuture> channel = this.removeChannel(channelId);
         if (channel == null) {
             return;
         }

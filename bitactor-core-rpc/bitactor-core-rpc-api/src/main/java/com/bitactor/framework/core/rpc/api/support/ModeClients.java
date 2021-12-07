@@ -34,20 +34,20 @@ import java.util.Optional;
 /**
  * @author WXH
  */
-public class ModeClients {
+public class ModeClients<CF> {
 
     private static final Logger logger = LoggerFactory.getLogger(ModeClients.class);
-    private List<AbstractClient> clients;
+    private List<AbstractClient<CF>> clients;
     private CycleAtomicInteger lastIndex = new CycleAtomicInteger();
     private UrlProperties url;
 
-    public ModeClients(UrlProperties url, clientBuilder builder) {
+    public ModeClients(UrlProperties url, clientBuilder<CF> builder) {
         this.url = url;
         int channelSize = Math.max(0, Math.min(this.url.getParameter(RPCConstants.CONSUMERS_CHANNEL_SIZE_KEY, RPCConstants.DEFAULT_CONSUMERS_CHANNEL_SIZE), CommonConstants.RUN_THREADS));
         clients = new ArrayList<>(channelSize);
         for (int i = 0; i < channelSize; i++) {
             try {
-                AbstractClient nettyClient = builder.build();
+                AbstractClient<CF> nettyClient = builder.build();
                 nettyClient.threadStart().sync();
                 clients.add(nettyClient);
             } catch (Throwable throwable) {
@@ -65,7 +65,7 @@ public class ModeClients {
         if (CollectionUtils.isEmpty(clients)) {
             return false;
         }
-        for (AbstractClient client : clients) {
+        for (AbstractClient<CF> client : clients) {
             if (client.isActive()) {
                 return true;
             }
@@ -77,18 +77,18 @@ public class ModeClients {
         if (CollectionUtils.isEmpty(clients)) {
             return;
         }
-        for (AbstractClient client : clients) {
+        for (AbstractClient<CF> client : clients) {
             client.close();
         }
         clients.clear();
         logger.info("Remove ModeClients size:{},url:{}", clients.size(), url.getGroupAndId());
     }
 
-    public Channel getChannel() {
+    public Channel<CF> getChannel() {
         return Optional.of(getClient()).orElse(null).getChannel();
     }
 
-    public AbstractClient getClient() {
+    public AbstractClient<CF> getClient() {
         try {
             lastIndex.next(clients.size());
             if (CollectionUtils.isEmpty(clients)) {
@@ -103,7 +103,7 @@ public class ModeClients {
     }
 
     @FunctionalInterface
-    public interface clientBuilder {
-        AbstractClient build() throws Throwable;
+    public interface clientBuilder<CF> {
+        AbstractClient<CF> build() throws Throwable;
     }
 }

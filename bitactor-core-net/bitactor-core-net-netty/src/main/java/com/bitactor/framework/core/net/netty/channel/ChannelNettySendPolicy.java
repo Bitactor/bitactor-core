@@ -1,4 +1,3 @@
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -16,26 +15,18 @@
  * limitations under the License.
  */
 
-package com.bitactor.framework.core.net.api;
+package com.bitactor.framework.core.net.netty.channel;
 
+import com.bitactor.framework.core.net.api.transport.message.MessageWrapper;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 
 /**
- * 网络客户端接口
+ * Netty channel 消息发生处理器
  *
  * @author WXH
  */
-public interface Client<CF> {
-
-    /**
-     * 重连接
-     */
-    void reconnect();
-
-    /**
-     * 获取通道
-     *
-     * @return channel
-     */
-    Channel<CF> getChannel();
-
+public interface ChannelNettySendPolicy {
+    ChannelFuture sendHandler(MessageWrapper message, ChannelHandlerContext ctx, ChannelPromise channelPromise);
 }

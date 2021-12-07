@@ -29,17 +29,17 @@ import java.util.List;
 /**
  * @author WXH
  */
-public class PollingRouterAdapter implements RouterAdapter {
+public class PollingRouterAdapter<CF> implements RouterAdapter<CF> {
 
     private CycleAtomicInteger lastIndex = new CycleAtomicInteger();
 
     @Override
-    public Channel routerAdapter(List<AbstractClient> clients, RPCRequest request) {
+    public Channel<CF> routerAdapter(List<AbstractClient<CF>> clients, RPCRequest request) {
         if (CollectionUtils.isEmpty(clients)) {
             return null;
         }
         int nowIndex = lastIndex.next(clients.size());
-        AbstractClient nettyClient = clients.get(nowIndex);
+        AbstractClient<CF> nettyClient = clients.get(nowIndex);
         return nettyClient.getChannel();
     }
 }

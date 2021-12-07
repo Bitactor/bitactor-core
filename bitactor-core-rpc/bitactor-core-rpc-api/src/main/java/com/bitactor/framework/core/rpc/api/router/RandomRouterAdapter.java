@@ -29,14 +29,14 @@ import java.util.List;
 /**
  * @author WXH
  */
-public class RandomRouterAdapter implements RouterAdapter {
+public class RandomRouterAdapter<CF> implements RouterAdapter<CF> {
 
     @Override
-    public Channel routerAdapter(List<AbstractClient> clients, RPCRequest request) {
+    public Channel<CF> routerAdapter(List<AbstractClient<CF>> clients, RPCRequest request) {
         if (CollectionUtils.isEmpty(clients)) {
             return null;
         }
-        AbstractClient nettyClient = RandomUtil.getRandomElement(clients);
+        AbstractClient<CF> nettyClient = RandomUtil.getRandomElement(clients);
         return nettyClient.getChannel();
     }
 }

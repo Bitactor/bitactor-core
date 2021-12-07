@@ -33,7 +33,7 @@ import java.util.Timer;
  *
  * @author WXH
  */
-public abstract class AbstractClient extends AbstractNetPoint implements Client {
+public abstract class AbstractClient<CF> extends AbstractNetPoint implements Client<CF> {
     private static final Logger logger = LoggerFactory.getLogger(AbstractClient.class);
     /**
      * 网络服务管理器
@@ -42,7 +42,7 @@ public abstract class AbstractClient extends AbstractNetPoint implements Client 
 
     protected final UrlProperties url;
 
-    private Channel channel;
+    private Channel<CF> channel;
 
     public AbstractClient(ChannelManager channelManager, UrlProperties url) {
         this.channelManager = channelManager;
@@ -66,14 +66,14 @@ public abstract class AbstractClient extends AbstractNetPoint implements Client 
     }
 
     @Override
-    public AbstractClient threadStart() {
+    public AbstractClient<CF> threadStart() {
         EndpointThread clientThread = new EndpointThread(this);
         clientThread.setName("#ClientStartThread");
         clientThread.start();
         return this;
     }
 
-    public Channel getChannel() {
+    public Channel<CF> getChannel() {
         return this.channel;
     }
 
@@ -92,7 +92,7 @@ public abstract class AbstractClient extends AbstractNetPoint implements Client 
      *
      * @param channel
      */
-    protected void addChannel(Channel channel) {
+    protected void addChannel(Channel<CF> channel) {
         if (this.channel != null) {
             this.channel.close();
         }

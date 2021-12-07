@@ -35,6 +35,7 @@ import com.bitactor.framework.core.net.netty.client.starter.KCPClientStarter;
 import com.bitactor.framework.core.net.netty.client.starter.TCPClientStarter;
 import com.bitactor.framework.core.net.netty.client.starter.WSClientStarter;
 import com.bitactor.framework.core.utils.lang.StringUtils;
+import io.netty.channel.ChannelFuture;
 
 import java.lang.reflect.Constructor;
 import java.net.InetSocketAddress;
@@ -45,7 +46,7 @@ import java.nio.ByteOrder;
  *
  * @author WXH
  */
-public abstract class NettyBaseClient extends AbstractClient {
+public abstract class NettyBaseClient extends AbstractClient<ChannelFuture> {
     private static final Logger logger = LoggerFactory.getLogger(NettyBaseClient.class);
     private Starter starter;
     private Codec codec;
