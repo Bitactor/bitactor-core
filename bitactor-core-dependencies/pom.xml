@@ -55,7 +55,7 @@
         <javassist_version>3.20.0-GA</javassist_version>
         <cglib_version>2.2.2</cglib_version>
         <netty4_version>4.1.70.Final</netty4_version>
-        <kcp_netty>1.4.8</kcp_netty>
+        <kcp_netty>1.5.0</kcp_netty>
         <fastjson_version>1.2.46</fastjson_version>
         <protostuff_Serialize_versio>1.0.10</protostuff_Serialize_versio>
         <proto3_version>3.8.0</proto3_version>
