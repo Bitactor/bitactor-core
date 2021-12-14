@@ -123,9 +123,6 @@ public class NetConstants {
 
     // 握手数据绑定器键
     public static final String HAND_SHAKE_DATA_BOUND_CLASS_KEY = "hand.shake.data.bound.class";
-    // 网络通道初始化处理类
-    public static final String CHANNEL_INIT_CLASS_KEY = "channel.init.class";
-
     // 是否打印延迟
     public static final String LOGGER_DELAY_KEY = "logger.delay";
     public static final Boolean DEFAULT_LOGGER_DELAY = false;

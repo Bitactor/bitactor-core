@@ -33,6 +33,7 @@ import io.jpower.kcp.netty.UkcpServerChannel;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.bootstrap.UkcpServerBootstrap;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
@@ -99,9 +100,7 @@ public class KCPServerStarter extends AbstractNettyServerStarter<UkcpServerChann
                     .childOption(UkcpChannelOption.UKCP_SND_WND, getUrl().getParameter(NetConstants.KCP_SND_WND, NetConstants.DEFAULT_KCP_SND_WND))
                     .childOption(UkcpChannelOption.UKCP_RCV_WND, getUrl().getParameter(NetConstants.KCP_RCV_WND, NetConstants.DEFAULT_KCP_RCV_WND))
                     .childOption(UkcpChannelOption.UKCP_AUTO_SET_CONV, true);
-            if (Objects.nonNull(channelInit)) {
-                channelInit.init(bootstrap::childOption);
-            }
+            channelOptionInit(bootstrap);
             setFuture(bootstrap.bind(port).sync());
             printStartLog();
             getChannelBound().startNotify();
@@ -114,6 +113,21 @@ public class KCPServerStarter extends AbstractNettyServerStarter<UkcpServerChann
             getBossGroup().shutdownGracefully();
             //关闭通知
             getChannelBound().shutdownNotify();
+        }
+    }
+    private void channelOptionInit(UkcpServerBootstrap bootstrap) {
+        if (Objects.nonNull(channelInit)) {
+            channelInit.init(new ChannelNettyOptions() {
+                @Override
+                public <T> void option(ChannelOption<T> option, T value) {
+                    bootstrap.childOption(option, value);
+                }
+
+                @Override
+                public <T> T getV(ChannelOption<T> option) {
+                    return (T) bootstrap.config().childOptions().get(option);
+                }
+            });
         }
     }
 

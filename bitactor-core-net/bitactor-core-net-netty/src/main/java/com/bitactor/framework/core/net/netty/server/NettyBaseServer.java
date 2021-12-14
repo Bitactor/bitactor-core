@@ -22,7 +22,6 @@ import com.bitactor.framework.core.config.UrlProperties;
 import com.bitactor.framework.core.constant.NetConstants;
 import com.bitactor.framework.core.constant.RPCConstants;
 import com.bitactor.framework.core.eventloop.BitactorEventLoopGroup;
-import com.bitactor.framework.core.exception.ErrorConfigException;
 import com.bitactor.framework.core.exception.NotSupportException;
 import com.bitactor.framework.core.logger.Logger;
 import com.bitactor.framework.core.logger.LoggerFactory;
@@ -36,7 +35,6 @@ import com.bitactor.framework.core.net.netty.server.starter.TCPServerStarter;
 import com.bitactor.framework.core.net.netty.server.starter.WSServerStarter;
 import com.bitactor.framework.core.threadpool.NamedThreadFactory;
 import com.bitactor.framework.core.utils.collection.CollectionUtils;
-import com.bitactor.framework.core.utils.lang.StringUtils;
 import io.netty.channel.ChannelFuture;
 
 import java.lang.reflect.Constructor;
@@ -76,6 +74,7 @@ public abstract class NettyBaseServer extends AbstractServer<ChannelFuture> {
     private ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
 
     private BitactorEventLoopGroup msgEventLoopGroup = null;
+    private ChannelInit<ChannelNettyOptions> channelInit = null;
 
     public void setBound(boolean bound) {
         this.bound = bound;
@@ -106,8 +105,10 @@ public abstract class NettyBaseServer extends AbstractServer<ChannelFuture> {
         return byteOrder;
     }
 
-    public NettyBaseServer(ChannelManager<ChannelFuture> channelManager, UrlProperties url) throws Throwable {
+    public NettyBaseServer(ChannelManager<ChannelFuture> channelManager, UrlProperties url, ChannelInit<ChannelNettyOptions> channelInit) throws Throwable {
         super(channelManager, url);
+        this.channelInit = channelInit;
+
         this.initializer();
     }
 
@@ -145,15 +146,6 @@ public abstract class NettyBaseServer extends AbstractServer<ChannelFuture> {
      */
     private void initializerStart() throws Throwable {
         String netProtocol = getNetProtocol();
-        ChannelInit<ChannelNettyOptions> channelInit = null;
-        String channelInitClazz = getChannelInitClazz();
-        if (!StringUtils.isBlank(channelInitClazz)) {
-            try {
-                channelInit = (ChannelInit) Class.forName(channelInitClazz).newInstance();
-            } catch (Exception e) {
-                throw new ErrorConfigException("Init server channel class failed: [" + channelInitClazz + "],please check config");
-            }
-        }
         if (netProtocol.equals(NetConstants.DEFAULT_TCP)) {
             this.starter = new TCPServerStarter(this, channelInit);
         } else if (netProtocol.equals(NetConstants.DEFAULT_KCP)) {
@@ -169,10 +161,6 @@ public abstract class NettyBaseServer extends AbstractServer<ChannelFuture> {
 
     public String getNetProtocol() {
         return getUrl().getParameter(NetConstants.NET_PROTOCOL_KEY, NetConstants.DEFAULT_NET_PROTOCOL);
-    }
-
-    public String getChannelInitClazz() {
-        return getUrl().getParameter(NetConstants.CHANNEL_INIT_CLASS_KEY);
     }
 
     /**

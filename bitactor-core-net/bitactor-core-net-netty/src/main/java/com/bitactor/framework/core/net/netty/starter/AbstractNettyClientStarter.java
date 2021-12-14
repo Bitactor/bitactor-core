@@ -27,6 +27,10 @@ import com.bitactor.framework.core.net.api.ChannelInit;
 import com.bitactor.framework.core.net.api.type.NetworkProtocol;
 import com.bitactor.framework.core.net.netty.channel.ChannelNettyOptions;
 import com.bitactor.framework.core.utils.lang.StringUtils;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.ChannelOption;
+
+import java.util.Objects;
 
 /**
  * 客户端启动器抽象类
@@ -78,4 +82,20 @@ public abstract class AbstractNettyClientStarter<T> extends AbstractNettyStarter
     }
 
     protected abstract Class<? extends T> getChannelClass();
+
+    protected void channelOptionInit(Bootstrap bootstrap) {
+        if (Objects.nonNull(channelInit)) {
+            channelInit.init(new ChannelNettyOptions() {
+                @Override
+                public <T> void option(ChannelOption<T> option, T value) {
+                    bootstrap.option(option, value);
+                }
+
+                @Override
+                public <T> T getV(ChannelOption<T> option) {
+                    return (T) bootstrap.config().options().get(option);
+                }
+            });
+        }
+    }
 }

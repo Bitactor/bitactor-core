@@ -25,9 +25,11 @@ import com.bitactor.framework.core.logger.Logger;
 import com.bitactor.framework.core.logger.LoggerFactory;
 import com.bitactor.framework.core.net.api.Channel;
 import com.bitactor.framework.core.net.api.ChannelContext;
+import com.bitactor.framework.core.net.api.ChannelInit;
 import com.bitactor.framework.core.net.api.ChannelManager;
 import com.bitactor.framework.core.net.api.transport.message.*;
 import com.bitactor.framework.core.net.netty.channel.AckNettyChannel;
+import com.bitactor.framework.core.net.netty.channel.ChannelNettyOptions;
 import com.bitactor.framework.core.net.netty.channel.NettyChannelContext;
 import com.bitactor.framework.core.net.netty.handler.HeartBeatSHandler;
 import io.netty.channel.ChannelFuture;
@@ -42,8 +44,8 @@ public class NettyModeServer extends NettyBaseServer {
     private static final Logger logger = LoggerFactory.getLogger(NettyModeServer.class);
 
 
-    public NettyModeServer(ChannelManager<ChannelFuture> channelManager, UrlProperties url) throws Throwable {
-        super(channelManager, url);
+    public NettyModeServer(ChannelManager<ChannelFuture> channelManager, UrlProperties url, ChannelInit<ChannelNettyOptions> channelInit) throws Throwable {
+        super(channelManager, url, channelInit);
     }
 
     @Override

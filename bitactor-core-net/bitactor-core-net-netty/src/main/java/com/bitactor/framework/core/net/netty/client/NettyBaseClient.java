@@ -19,7 +19,6 @@ package com.bitactor.framework.core.net.netty.client;
 
 import com.bitactor.framework.core.config.UrlProperties;
 import com.bitactor.framework.core.constant.NetConstants;
-import com.bitactor.framework.core.exception.ErrorConfigException;
 import com.bitactor.framework.core.exception.NotSupportException;
 import com.bitactor.framework.core.logger.Logger;
 import com.bitactor.framework.core.logger.LoggerFactory;
@@ -34,7 +33,6 @@ import com.bitactor.framework.core.net.netty.channel.ChannelNettyOptions;
 import com.bitactor.framework.core.net.netty.client.starter.KCPClientStarter;
 import com.bitactor.framework.core.net.netty.client.starter.TCPClientStarter;
 import com.bitactor.framework.core.net.netty.client.starter.WSClientStarter;
-import com.bitactor.framework.core.utils.lang.StringUtils;
 import io.netty.channel.ChannelFuture;
 
 import java.lang.reflect.Constructor;
@@ -53,11 +51,14 @@ public abstract class NettyBaseClient extends AbstractClient<ChannelFuture> {
     private AckNettyChannel ackChannel;
     private HandShakeData handShakeData;
     private ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
+    private ChannelInit<ChannelNettyOptions> channelInit;
 
     private boolean isOpenHeartbeat = false;
 
-    public NettyBaseClient(ChannelManager channelManager, UrlProperties url) throws Throwable {
+    public NettyBaseClient(ChannelManager channelManager, UrlProperties url, ChannelInit<ChannelNettyOptions> channelInit) throws Throwable {
         super(channelManager, url);
+        this.channelInit = channelInit;
+        
         this.initializer();
     }
 
@@ -104,15 +105,6 @@ public abstract class NettyBaseClient extends AbstractClient<ChannelFuture> {
      */
     private void initializerStart() throws Throwable {
         String netProtocol = getNetProtocol();
-        ChannelInit<ChannelNettyOptions> channelInit = null;
-        String channelInitClazz = getChannelInitClazz();
-        if (!StringUtils.isBlank(channelInitClazz)) {
-            try {
-                channelInit = (ChannelInit) Class.forName(channelInitClazz).newInstance();
-            } catch (Exception e) {
-                throw new ErrorConfigException("Init client channel class failed: [" + channelInitClazz + "],please check config");
-            }
-        }
         if (netProtocol.equals(NetConstants.DEFAULT_TCP)) {
             this.starter = new TCPClientStarter(this, channelInit);
         } else if (netProtocol.equals(NetConstants.DEFAULT_KCP)) {
@@ -127,10 +119,6 @@ public abstract class NettyBaseClient extends AbstractClient<ChannelFuture> {
 
     public String getNetProtocol() {
         return getUrl().getParameter(NetConstants.NET_PROTOCOL_KEY, NetConstants.DEFAULT_NET_PROTOCOL);
-    }
-
-    public String getChannelInitClazz() {
-        return getUrl().getParameter(NetConstants.CHANNEL_INIT_CLASS_KEY);
     }
 
     /**

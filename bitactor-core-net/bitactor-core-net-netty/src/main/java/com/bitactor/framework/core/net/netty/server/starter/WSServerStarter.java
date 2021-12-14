@@ -103,9 +103,7 @@ public class WSServerStarter extends AbstractNettyServerStarter<ServerChannel> {
             bootstrap.childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
             bootstrap.childOption(ChannelOption.SO_REUSEADDR, Boolean.TRUE);
             bootstrap.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
-            if (Objects.nonNull(channelInit)) {
-                channelInit.init(bootstrap::childOption);
-            }
+            channelOptionInit(bootstrap);
             //绑定端口启动服务，并等待client连接
             setFuture(bootstrap.bind(port).sync());
             printStartLog();

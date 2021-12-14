@@ -123,9 +123,7 @@ public class WSClientStarter extends AbstractNettyClientStarter<NioSocketChannel
                 }
 
             });
-            if (Objects.nonNull(channelInit)) {
-                channelInit.init(bootstrap::option);
-            }
+            channelOptionInit(bootstrap);
             setFuture(bootstrap.connect(getUrl().getHost(), getUrl().getPort()).sync());
             printStartLog();
             getChannelBound().startNotify();

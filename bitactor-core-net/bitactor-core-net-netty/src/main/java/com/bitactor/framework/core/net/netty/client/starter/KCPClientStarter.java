@@ -37,8 +37,6 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 
-import java.util.Objects;
-
 /**
  * TCP协议启动器
  *
@@ -104,9 +102,7 @@ public class KCPClientStarter extends AbstractNettyClientStarter<UkcpClientChann
                     .option(UkcpChannelOption.UKCP_SND_WND, getUrl().getParameter(NetConstants.KCP_SND_WND, NetConstants.DEFAULT_KCP_SND_WND))
                     .option(UkcpChannelOption.UKCP_RCV_WND, getUrl().getParameter(NetConstants.KCP_RCV_WND, NetConstants.DEFAULT_KCP_RCV_WND))
                     .option(UkcpChannelOption.UKCP_AUTO_SET_CONV, true);
-            if (Objects.nonNull(channelInit)) {
-                channelInit.init(bootstrap::option);
-            }
+            channelOptionInit(bootstrap);
             setFuture(bootstrap.connect(getUrl().getHost(), getUrl().getPort()).sync());
             printStartLog();
             getChannelBound().startNotify();

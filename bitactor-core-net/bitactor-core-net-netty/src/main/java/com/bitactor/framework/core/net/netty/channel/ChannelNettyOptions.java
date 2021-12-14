@@ -22,7 +22,8 @@ import io.netty.channel.ChannelOption;
 /**
  * @author WXH
  */
-@FunctionalInterface
 public interface ChannelNettyOptions {
     <T> void option(ChannelOption<T> option, T value);
+
+    <T> T getV(ChannelOption<T> option);
 }

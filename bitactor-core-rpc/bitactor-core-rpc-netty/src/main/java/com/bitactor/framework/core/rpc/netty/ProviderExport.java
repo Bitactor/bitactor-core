@@ -24,8 +24,10 @@ import com.bitactor.framework.core.logger.Logger;
 import com.bitactor.framework.core.logger.LoggerFactory;
 import com.bitactor.framework.core.net.api.Channel;
 import com.bitactor.framework.core.net.api.ChannelContext;
+import com.bitactor.framework.core.net.api.ChannelInit;
 import com.bitactor.framework.core.net.api.transport.AbstractServer;
 import com.bitactor.framework.core.net.api.transport.message.MessageWrapper;
+import com.bitactor.framework.core.net.netty.channel.ChannelNettyOptions;
 import com.bitactor.framework.core.net.netty.channel.ChannelNettySendPolicy;
 import com.bitactor.framework.core.net.netty.channel.NettyChannel;
 import com.bitactor.framework.core.net.netty.channel.NettyChannelContext;
@@ -59,12 +61,14 @@ public class ProviderExport extends AbstractExport<ChannelFuture> {
     private static final Logger logger = LoggerFactory.getLogger(ProviderExport.class);
     private AbstractServer<ChannelFuture> server;
     private ChannelNettySendPolicy sendPolicy;
+    private ChannelInit<ChannelNettyOptions> channelInit;
 
     public ProviderExport() {
     }
 
-    public ProviderExport(ChannelNettySendPolicy sendPolicy) {
+    public ProviderExport(ChannelNettySendPolicy sendPolicy, ChannelInit<ChannelNettyOptions> channelInit) {
         this.sendPolicy = sendPolicy;
+        this.channelInit = channelInit;
     }
 
     private boolean checkCanExport() {
@@ -83,7 +87,7 @@ public class ProviderExport extends AbstractExport<ChannelFuture> {
         if (!checkCanExport()) {
             return;
         }
-        this.server = new NettyModeServer(new ProviderListener(this), url);
+        this.server = new NettyModeServer(new ProviderListener(this), url, channelInit);
         this.server.threadStart().sync();
     }
 

@@ -34,8 +34,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
 
-import java.util.Objects;
-
 /**
  * TCP协议启动器
  *
@@ -95,9 +93,7 @@ public class TCPClientStarter extends AbstractNettyClientStarter<NioSocketChanne
                 }
 
             });
-            if (Objects.nonNull(channelInit)) {
-                channelInit.init(bootstrap::option);
-            }
+            channelOptionInit(bootstrap);
             setFuture(bootstrap.connect(getUrl().getHost(), getUrl().getPort()).sync());
             printStartLog();
             getChannelBound().startNotify();

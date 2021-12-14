@@ -28,6 +28,9 @@ import com.bitactor.framework.core.net.api.type.NetworkProtocol;
 import com.bitactor.framework.core.net.netty.channel.ChannelNettyOptions;
 import com.bitactor.framework.core.utils.assist.UrlPropertiesUtils;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelOption;
+
+import java.util.Objects;
 
 /**
  * 服务端启动器抽象类
@@ -65,6 +68,21 @@ public abstract class AbstractNettyServerStarter<T> extends AbstractNettyStarter
         printProto();
     }
 
+    protected void channelOptionInit(ServerBootstrap bootstrap) {
+        if (Objects.nonNull(channelInit)) {
+            channelInit.init(new ChannelNettyOptions() {
+                @Override
+                public <T> void option(ChannelOption<T> option, T value) {
+                    bootstrap.childOption(option, value);
+                }
+
+                @Override
+                public <T> T getV(ChannelOption<T> option) {
+                    return (T) bootstrap.config().childOptions().get(option);
+                }
+            });
+        }
+    }
 
     private void printProto() {
         if (getUrl().getParameter(NetConstants.PRINT_PROTO_KEY, NetConstants.DEFAULT_PRINT_PROTO)) {

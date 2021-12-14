@@ -26,8 +26,10 @@ import com.bitactor.framework.core.logger.Logger;
 import com.bitactor.framework.core.logger.LoggerFactory;
 import com.bitactor.framework.core.net.api.Channel;
 import com.bitactor.framework.core.net.api.ChannelContext;
+import com.bitactor.framework.core.net.api.ChannelInit;
 import com.bitactor.framework.core.net.api.transport.AbstractClient;
 import com.bitactor.framework.core.net.api.transport.message.MessageWrapper;
+import com.bitactor.framework.core.net.netty.channel.ChannelNettyOptions;
 import com.bitactor.framework.core.net.netty.channel.ChannelNettySendPolicy;
 import com.bitactor.framework.core.net.netty.channel.NettyChannel;
 import com.bitactor.framework.core.net.netty.channel.NettyChannelContext;
@@ -64,14 +66,16 @@ public abstract class ConsumerBound extends AbstractBound<ChannelFuture> {
     private final Lock getAllServerLock = new ReentrantLock();
     private final Lock getAssignServerLock = new ReentrantLock();
     private ChannelNettySendPolicy sendPolicy;
+    private ChannelInit<ChannelNettyOptions> channelInit;
 
     public ConsumerBound(String appGroup) {
         super(appGroup);
     }
 
-    public ConsumerBound(String appGroup, ChannelNettySendPolicy sendPolicy) {
+    public ConsumerBound(String appGroup, ChannelNettySendPolicy sendPolicy, ChannelInit<ChannelNettyOptions> channelInit) {
         super(appGroup);
         this.sendPolicy = sendPolicy;
+        this.channelInit = channelInit;
     }
 
     public boolean addUrl(UrlProperties url) throws Throwable {
@@ -81,7 +85,7 @@ public abstract class ConsumerBound extends AbstractBound<ChannelFuture> {
         // 判断当前url的实例是否是本地服务，若是远程服务则添加新的连接 并请更新
         if (!VMCache.getInstance().isLocalServerTypeId(url.getGroupAndId()) && !isActive(url.getGroupAndId())) {
             ModeClients<ChannelFuture> modeClients = new ModeClients<ChannelFuture>(url, () -> {
-                return new NettyModeClient(new ConsumerListener(this), url);
+                return new NettyModeClient(new ConsumerListener(this), url, channelInit);
             });
             clients.put(url.getGroupAndId(), modeClients);
         }
