@@ -58,7 +58,7 @@
         <kcp_netty>1.5.0</kcp_netty>
         <fastjson_version>1.2.46</fastjson_version>
         <protostuff_Serialize_versio>1.0.10</protostuff_Serialize_versio>
-        <proto3_version>3.8.0</proto3_version>
+        <proto3_version>3.18.2</proto3_version>
         <nacos_version>1.2.1</nacos_version>
         <hutool_version>5.3.10</hutool_version>
         <!-- Log libs -->
