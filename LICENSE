@@ -227,3 +227,8 @@ This product contains a modified portion of 'Apache Dubbo', see https://github.c
 * org.apache.dubbo.registry.nacos.NacosRegistry
 * org.apache.dubbo.registry.nacos.NacosServiceName
 * org.apache.dubbo.registry.nacos.NacosRegistryFactory
+
+For the package com.bitactor.framework.core.eventloop:
+
+This product contains a modified portion of 'netty', see https://github.com/netty/netty/blob/4.1/LICENSE:
+* io.netty.channel.*
